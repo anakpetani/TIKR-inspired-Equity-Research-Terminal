@@ -122,6 +122,11 @@ canvas.chart{width:100%;height:320px;display:block;border-radius:8px}
 .pill.g{background:rgba(63,185,80,.15);color:var(--green)}
 .pill.r{background:rgba(248,81,73,.15);color:var(--red)}
 .pill.y{background:rgba(210,153,34,.15);color:var(--gold)}
+.live-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;border:1px solid var(--border);color:var(--muted);cursor:default;user-select:none}
+.live-badge.live{color:var(--green);border-color:rgba(63,185,80,.5)}
+.live-badge.off{color:var(--red);border-color:rgba(248,81,73,.5)}
+.live-refresh{cursor:pointer;border:1px solid var(--border);background:var(--panel2);color:var(--muted);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:600;margin-left:6px}
+.live-refresh:hover{color:var(--accent);border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -263,6 +268,67 @@ function derive(c){ // nilai turunan
 }
 
 /* =========================================================
+   LIVE PRICE (Yahoo Finance, multi-fallback)
+   ========================================================= */
+function roundTick(v){ // pembulatan sesuai tick size BEI
+  const t=v<200?1:v<500?2:v<2000?5:v<5000?10:25;
+  return Math.round(v/t)*t;
+}
+function yTicker(tk){return tk.includes(".")?tk:tk+".JK"}
+async function fetchYahoo(tk){
+  const ytk=yTicker(tk);
+  const target=`https://query1.finance.yahoo.com/v8/finance/chart/${ytk}?range=1y&interval=1d`;
+  const attempts=[target,
+    "https://corsproxy.io/?url="+encodeURIComponent(target),
+    "https://api.allorigins.win/raw?url="+encodeURIComponent(target)];
+  for(const u of attempts){
+    try{
+      const ctrl=new AbortController();const to=setTimeout(()=>ctrl.abort(),8000);
+      const r=await fetch(u,{signal:ctrl.signal});clearTimeout(to);
+      if(!r.ok)continue;
+      const j=await r.json();
+      const res=j.chart&&j.chart.result&&j.chart.result[0];
+      if(!res||!res.meta||!res.meta.regularMarketPrice)continue;
+      const m=res.meta;
+      const price=m.regularMarketPrice;
+      const prev=m.chartPreviousClose||m.previousClose||price;
+      const q=res.indicators&&res.indicators.quote&&res.indicators.quote[0];
+      let closes=(q&&q.close||[]).filter(v=>v!=null);
+      if(closes.length&&Math.abs(closes[closes.length-1]-price)>price*0.005)closes.push(price);
+      if(!closes.length)closes=[prev,price];
+      return {price,prev,closes,ts:res.timestamp||[]};
+    }catch(e){/* coba attempt berikutnya */}
+  }
+  return null;
+}
+let liveState="loading";
+function setLiveBadge(state,extra){
+  liveState=state;
+  const b=document.getElementById("live-badge");if(!b)return;
+  b.classList.remove("live","off");
+  if(state==="live"){b.classList.add("live");b.textContent="● LIVE · Yahoo Finance"+(extra?" · "+extra:"")}
+  else if(state==="loading"){b.textContent="● mengambil harga live…"}
+  else{b.classList.add("off");b.textContent="● offline — menampilkan harga terakhir"}
+}
+let refreshing=false;
+async function refreshLive(manual){
+  if(refreshing||!CO.length)return;refreshing=true;
+  setLiveBadge("loading");
+  const results=await Promise.all(CO.map(c=>fetchYahoo(c.tk)));
+  let ok=0;
+  results.forEach((r,i)=>{
+    if(r){ok++;CO[i].price=roundTick(r.price);CO[i].chg=+((r.price/r.prev-1)*100).toFixed(2);
+      CO[i].live={closes:r.closes,ts:r.ts,time:Date.now()};}
+  });
+  persist();
+  setLiveBadge(ok?"live":"offline",ok?new Date().toLocaleTimeString("id-ID"):"coba klik ⟳");
+  renderList(document.getElementById("co-search").value);
+  if(cur){renderHead();if(activetab==="overview")drawChart()}
+  refreshing=false;
+}
+setInterval(()=>{if(!document.hidden)refreshLive()},30000); // auto-refresh tiap 30 dtk
+
+/* =========================================================
    SIDEBAR / COMPANY LIST
    ========================================================= */
 let cur=null;
@@ -325,6 +391,8 @@ function renderHead(){
       <span class="big-price">${rp(cur.price)}</span>
       <span class="chg ${cls(cur.chg)}">${fmtPct(cur.chg)}</span>
       <span style="color:var(--muted);font-size:12px">1D · mata uang IDR</span>
+      <span id="live-badge" class="live-badge">● memuat…</span>
+      <button class="live-refresh" title="Refresh harga sekarang" onclick="refreshLive(true)">⟳ Refresh</button>
     </div>
     <div class="tabs">
       <div class="tab ${activetab==="overview"?"active":""}" onclick="setTab('overview')">Overview</div>
@@ -369,10 +437,23 @@ function tabOverview(el){
   drawChart();
 }
 function setRange(r){range=r;setTab("overview")}
+function getSeries(co,days){
+  let vals,ts=[];
+  if(co.live&&co.live.closes&&co.live.closes.length>=10){
+    vals=co.live.closes.slice(-days);
+    ts=(co.live.ts||[]).slice(-days);
+  }else{
+    vals=history(co,days);
+  }
+  const now=Date.now(),dayMs=86400000;
+  while(ts.length<vals.length)ts.push(0);
+  for(let i=0;i<ts.length;i++){if(!ts[i])ts[i]=now-(vals.length-1-i)*dayMs}
+  return {vals,ts};
+}
 function drawChart(){
   const cv=document.getElementById("pchart");if(!cv)return;
   const days={"1M":21,"3M":63,"6M":126,"1Y":252}[range]||126;
-  const data=history(cur,days);
+  const {vals:data,ts}=getSeries(cur,days);
   const dpr=window.devicePixelRatio||1;
   let w=cv.clientWidth,h=cv.clientHeight;if(w<120)w=900;if(h<120)h=320;
   cv.width=w*dpr;cv.height=h*dpr;
@@ -396,7 +477,7 @@ function drawChart(){
   cv.onmousemove=e=>{const r=cv.getBoundingClientRect();
     const i=Math.round((e.clientX-r.left-pad.l)/(w-pad.l-pad.r)*(data.length-1));
     if(i<0||i>=data.length){hov.style.display="none";return}
-    const dd=new Date();dd.setDate(dd.getDate()-(data.length-1-i));
+    const dd=new Date(ts[i]);
     hov.style.display="block";hov.style.left=Math.min(X(i)+12,r.width-130)+"px";hov.style.top=(Y(data[i])-40)+"px";
     hov.innerHTML=dd.toLocaleDateString("id-ID",{day:"numeric",month:"short",year:"numeric"})+" · <b>"+rp(data[i])+"</b>";};
   cv.onmouseleave=()=>hov.style.display="none";
@@ -581,7 +662,7 @@ function quickAdd(tk,nm,sector){
   CO.push(base);
   // tandai peer jadi added di semua company
   CO.forEach(c=>c.peers&&c.peers.forEach(p=>{if(p.tk===tk)p.added=true}));
-  persist();selectCo(tk);setTab("peers");
+  persist();selectCo(tk);setTab("peers");refreshLive();
 }
 
 /* =========================================================
@@ -630,7 +711,7 @@ function saveNewStock(){
   buildFinFrom(co,cagr,margin,rev);
   if(editTk){const i=CO.findIndex(x=>x.tk===editTk);CO[i]=co;if(cur&&cur.tk===editTk)cur=co}
   else CO.push(co);
-  persist();closeModal();selectCo(tk);
+  persist();closeModal();selectCo(tk);refreshLive();
   if(!editTk)setTab("overview");
 }
 function buildFinFrom(co,cagr,margin,revLast){
@@ -670,6 +751,7 @@ function buildFinFrom(co,cagr,margin,revLast){
    INIT
    ========================================================= */
 selectCo(CO[0]?CO[0].tk:null);
+refreshLive();
 window.addEventListener("resize",()=>{if(activetab==="overview"&&cur)drawChart()});
 </script>
 </body>

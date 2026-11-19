@@ -28,8 +28,10 @@ Aplikasi akan hidup di `https://<username>.github.io/<repo-name>/`.
 - Saham bisa di-edit dan dihapus; tombol **Reset** mengembalikan ke data awal.
 
 ## 📊 Sumber Data
-**Data dummy** yang dibuat realistis untuk keperluan demo tugas — bukan data real-time dan bukan saran investasi.
-Saham awal: **PT Barito Pacific Tbk (IDX: BRPT)** — peer lain (TPIA, BREN, dll.) bisa ditambahkan lewat fitur Tambah Saham.
+- **Harga & grafik: REAL & otomatis** — diambil langsung dari Yahoo Finance (ticker `BRPT.JK`, dll.), auto-refresh tiap 30 detik, pembulatan sesuai tick size BEI. Badge **● LIVE** di header menunjukkan status koneksi; tombol **⟳ Refresh** untuk refresh manual.
+  - 3 jalur fallback: fetch langsung → CORS proxy (corsproxy.io → allorigins.win) → harga terakhir tersimpan saat offline.
+- **Data fundamental (financials, forecast, target harga): dummy realistis** — bukan data real-time dan bukan saran investasi. Bisa diedit lewat fitur Tambah/Edit Saham.
+- Saham awal: **PT Barito Pacific Tbk (IDX: BRPT)** — peer lain (TPIA, BREN, dll.) bisa ditambahkan lewat fitur Tambah Saham, harga-nya juga akan live otomatis.
 
 ## 🗂️ Struktur
 ```
