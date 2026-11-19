@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TIKR Clone — PT Barito Pacific Tbk (IDX: BRPT)</title>
+<style>
+:root{
+  --bg:#0e1116; --panel:#161b22; --panel2:#1c232c; --border:#2a323d;
+  --text:#e6edf3; --muted:#8b98a5; --accent:#2f81f7; --accent-soft:rgba(47,129,247,.14);
+  --green:#3fb950; --red:#f85149; --gold:#d29922;
+  --shadow:0 2px 8px rgba(0,0,0,.4);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+/* ===== Layout ===== */
+.app{display:flex;min-height:100vh}
+.sidebar{width:250px;background:#0a0d12;border-right:1px solid var(--border);position:fixed;top:0;bottom:0;display:flex;flex-direction:column;z-index:50}
+.logo{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--border)}
+.logo .mark{width:30px;height:30px;border-radius:6px;background:linear-gradient(135deg,#2f81f7,#79b8ff);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:14px}
+.logo .name{font-weight:800;color:#fff;font-size:17px;letter-spacing:.02em}
+.logo .name small{display:block;font-size:10px;font-weight:500;color:var(--muted)}
+.side-search{margin:12px 12px 6px;position:relative}
+.side-search input{width:100%;padding:8px 10px 8px 30px;background:var(--panel);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none}
+.side-search input:focus{border-color:var(--accent)}
+.side-search .ico{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px}
+.side-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#5a6572;padding:12px 18px 6px;font-weight:700}
+.co-list{flex:1;overflow-y:auto;padding:0 8px}
+.co-item{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:8px;cursor:pointer;position:relative}
+.co-item:hover{background:var(--panel)}
+.co-item.active{background:var(--accent-soft)}
+.co-item .sym{font-weight:800;color:var(--accent);width:56px;font-size:13px}
+.co-item .nm{flex:1;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.co-item .px{font-size:12px;font-weight:600}
+.co-item .del{opacity:0;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 4px}
+.co-item:hover .del{opacity:1}
+.co-item .del:hover{color:var(--red)}
+.add-wrap{padding:10px 12px;border-top:1px solid var(--border)}
+.add-btn{width:100%;padding:10px;border:1px dashed #3a4450;background:transparent;color:var(--text);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
+.add-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.side-foot{padding:10px 16px;font-size:10.5px;color:#5a6572;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.side-foot a{color:var(--accent);cursor:pointer;text-decoration:none}
+.main{margin-left:250px;flex:1;min-width:0}
+/* ===== Ticker header ===== */
+.tk-head{padding:20px 28px 0;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#131922,#0e1116)}
+.tk-line1{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.tk-sym{font-size:26px;font-weight:800}
+.badge{font-size:11px;background:var(--panel2);border:1px solid var(--border);color:var(--muted);padding:3px 9px;border-radius:5px;font-weight:600}
+.badge.blue{color:var(--accent);border-color:rgba(47,129,247,.4)}
+.tk-price-row{display:flex;align-items:baseline;gap:14px;margin-top:6px}
+.big-price{font-size:30px;font-weight:800;letter-spacing:-.5px}
+.chg{font-size:15px;font-weight:700}
+.pos{color:var(--green)} .neg{color:var(--red)} .flat{color:var(--muted)}
+.tk-desc{color:var(--muted);font-size:12.5px;margin-top:4px;max-width:760px}
+.tabs{display:flex;gap:2px;margin-top:16px}
+.tab{padding:11px 18px;cursor:pointer;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;font-size:13.5px}
+.tab:hover{color:var(--text)}
+.tab.active{color:#fff;border-color:var(--accent)}
+.content{padding:22px 28px;max-width:1240px}
+/* ===== Cards & tables ===== */
+.card{background:var(--panel);border:1px solid var(--border);border-radius:10px;margin-bottom:18px}
+.card-h{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.card-h h3{font-size:14.5px}
+.card-b{padding:18px}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:right;padding:9px 12px;color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);white-space:nowrap}
+thead th:first-child{text-align:left}
+tbody td{padding:9px 12px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
+tbody td:first-child{text-align:left}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.025)}
+.seg{display:inline-flex;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:3px}
+.seg button{padding:5px 14px;background:transparent;border:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;border-radius:6px}
+.seg button.on{background:var(--accent);color:#fff}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.stat{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.stat .l{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.stat .v{font-size:16px;font-weight:700;margin-top:3px}
+canvas.chart{width:100%;height:320px;display:block;border-radius:8px}
+.range-btns{display:inline-flex;gap:4px}
+.range-btns button{padding:5px 12px;background:var(--panel2);border:1px solid var(--border);color:var(--muted);border-radius:6px;font-size:12px;cursor:pointer;font-weight:600}
+.range-btns button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+/* ===== Valuation ===== */
+.val-grid{display:grid;grid-template-columns:300px 1fr;gap:18px}
+@media(max-width:980px){.val-grid{grid-template-columns:1fr}}
+.field{margin-bottom:14px}
+.field label{font-size:12px;font-weight:600;color:var(--muted);display:block}
+.field input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;margin-top:4px;background:var(--panel2);color:var(--text)}
+.field input:focus{outline:none;border-color:var(--accent)}
+.fv-box{background:linear-gradient(135deg,#1a3a6b,#2f81f722);border:1px solid rgba(47,129,247,.35);border-radius:10px;padding:20px}
+.fv-box .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:700}
+.fv-box .v{font-size:30px;font-weight:800;margin:6px 0}
+.verdict{display:inline-block;padding:5px 14px;border-radius:20px;font-weight:700;font-size:12.5px}
+.verdict.under{background:var(--green);color:#0b1a0e}
+.verdict.over{background:var(--red);color:#fff}
+/* ===== Peers ===== */
+.peer-chip{display:inline-flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin:0 8px 8px 0}
+.peer-chip .sym{font-weight:800;color:var(--accent)}
+.peer-chip button{background:var(--accent);border:none;color:#fff;border-radius:5px;padding:3px 10px;font-size:11px;cursor:pointer;font-weight:600}
+/* ===== Modal ===== */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:flex-start;justify-content:center;z-index:100;padding:40px 20px;overflow:auto}
+.modal-bg.show{display:flex}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:12px;width:520px;max-width:100%;box-shadow:var(--shadow)}
+.modal-h{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-h h3{font-size:15px}
+.modal-h .x{cursor:pointer;color:var(--muted);font-size:18px;padding:0 4px}
+.modal-b{padding:20px}
+.modal-b .field input,.modal-b .field select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--panel2);color:var(--text);margin-top:4px}
+.modal-b .field input:focus,.modal-b .field select:focus{outline:none;border-color:var(--accent)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-f{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+.btn{padding:9px 16px;border-radius:8px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font-size:13px;font-weight:600;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:#1f6fe0}
+.btn.danger{color:var(--red);border-color:rgba(248,81,73,.4)}
+.hint{font-size:11px;color:var(--muted);margin-top:3px}
+.empty-state{padding:80px 20px;text-align:center;color:var(--muted)}
+.empty-state .big{font-size:44px;margin-bottom:12px}
+.pill{display:inline-block;padding:2px 9px;border-radius:12px;font-size:11px;font-weight:700}
+.pill.g{background:rgba(63,185,80,.15);color:var(--green)}
+.pill.r{background:rgba(248,81,73,.15);color:var(--red)}
+.pill.y{background:rgba(210,153,34,.15);color:var(--gold)}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="mark">T</div>
+      <div class="name">TIKR<small>Clone · Indonesia</small></div>
+    </div>
+    <div class="side-search">
+      <span class="ico">🔎</span>
+      <input id="co-search" placeholder="Cari perusahaan..." autocomplete="off">
+    </div>
+    <div class="side-label">Perusahaan</div>
+    <div class="co-list" id="co-list"></div>
+    <div class="add-wrap"><button class="add-btn" onclick="openAddModal()">＋ Tambah Saham</button></div>
+    <div class="side-foot"><span>Data dummy — demo tugas</span><a onclick="resetData()">Reset</a></div>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <div class="main">
+    <div id="tk-head"></div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<!-- ===== Modal Tambah Saham ===== -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-h"><h3 id="modal-title">Tambah Saham</h3><span class="x" onclick="closeModal()">✕</span></div>
+    <div class="modal-b">
+      <div class="frow">
+        <div class="field"><label>Ticker (wajib)</label><input id="f-tk" placeholder="mis. TPIA" maxlength="8"></div>
+        <div class="field"><label>Nama Perusahaan</label><input id="f-nm" placeholder="mis. Chandra Asri Pacific"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label>Sektor</label>
+          <select id="f-sector">
+            <option>Energi & Petrokimia</option><option>Perbankan & Jasa Keuangan</option>
+            <option>Telekomunikasi</option><option>Infrastruktur & Energi Terbarukan</option>
+            <option>Barang Konsumer</option><option>Properti & Real Estat</option>
+            <option>Tambang & Logam</option><option>Transportasi & Logistik</option>
+            <option>Kesehatan</option><option>Teknologi</option>
+          </select>
+        </div>
+        <div class="field"><label>Harga Saham (Rp)</label><input id="f-price" type="number" placeholder="mis. 7500"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label>Market Cap (Rp triliun)</label><input id="f-mcap" type="number" step="0.1" placeholder="mis. 75.4"></div>
+        <div class="field"><label>Dividend Yield (%)</label><input id="f-div" type="number" step="0.01" placeholder="mis. 1.2"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label>Revenue FY terakhir (Rp triliun)</label><input id="f-rev" type="number" step="0.1" placeholder="mis. 12.5"></div>
+        <div class="field"><label>Net Margin (%)</label><input id="f-margin" type="number" step="0.1" placeholder="mis. 8"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label>Revenue CAGR 5 thn (%)</label><input id="f-cagr" type="number" step="0.1" placeholder="mis. 7.5"><div class="hint">Dipakai untuk generate financials historis & forecast</div></div>
+        <div class="field"><label>Beta</label><input id="f-beta" type="number" step="0.01" placeholder="mis. 1.1"></div>
+      </div>
+      <div class="hint" style="margin-top:10px">💡 Isi ticker & harga minimal. Sisanya bisa dikosongkan — sistem akan mengestimasi data yang tidak diisi.</div>
+    </div>
+    <div class="modal-f">
+      <button class="btn" onclick="closeModal()">Batal</button>
+      <button class="btn primary" onclick="saveNewStock()">Simpan Saham</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   DATA STORE (localStorage)
+   ========================================================= */
+const STORE_KEY="tikr_stocks_v1";
+const SEED=[{
+  tk:"BRPT", nm:"PT Barito Pacific Tbk", ex:"IDX", sector:"Energi & Petrokimia",
+  price:1115, chg:1.83, mcap:187.4, div:0.62, beta:1.35,
+  desc:"Holding investasi yang bergerak di bidang energi dan petrokimia. Melalui anak usahanya — PT Chandra Asri Pacific Tbk (petrokimia & infrastruktur kimia) dan PT Barito Renewables Energy Tbk (pembangkit listrik geotermal Star Energy) — perusahaan menawarkan eksposur ke siklus petrokimia Asia dan bisnis energi terbarukan yang stabil.",
+  shares:168,
+  fin:{ // Rp triliun, FY2019-FY2023
+    years:[2019,2020,2021,2022,2023],
+    rev:[40.2,44.9,74.4,79.0,63.8],
+    gp:[12.1,15.2,26.8,22.4,12.9],
+    ebitda:[13.5,17.8,30.1,25.2,15.8],
+    op:[9.8,12.6,23.4,18.7,10.9],
+    ni:[3.9,4.8,6.4,1.9,1.7],
+    assets:[78.0,96.0,128.0,132.0,126.0],
+    liab:[40.0,45.0,55.0,58.0,54.0],
+    cash:[5.0,7.0,12.0,14.0,11.0],
+    debt:[18.0,20.0,30.0,32.0,29.0],
+    ocf:[10.2,14.5,25.0,20.3,12.8],
+    capex:[4.0,6.0,9.0,7.0,5.0],
+    divpaid:[1.0,1.2,1.6,2.0,1.1]
+  },
+  fc:{ // konsensus analis (dummy)
+    years:[2024,2025,2026],
+    rev:[68.5,74.2,79.8],
+    ni:[2.0,2.5,3.0],
+    eps:[12,15,18],
+    target:{low:950,avg:1350,high:1700},
+    ratings:{buy:3,hold:2,sell:1}
+  },
+  peers:[{tk:"TPIA",nm:"Chandra Asri Pacific",sector:"Energi & Petrokimia",added:false},
+         {tk:"BREN",nm:"Barito Renewables Energy",sector:"Infrastruktur & Energi Terbarukan",added:false}]
+}];
+let CO=[]; // daftar perusahaan aktif
+try{CO=JSON.parse(localStorage.getItem(STORE_KEY)||"null")||null}catch(e){}
+if(!CO||!CO.length){CO=JSON.parse(JSON.stringify(SEED));persist()}
+function persist(){localStorage.setItem(STORE_KEY,JSON.stringify(CO))}
+function resetData(){if(confirm("Reset semua data ke kondisi awal (hanya BRPT)?")){CO=JSON.parse(JSON.stringify(SEED));persist();selectCo(CO[0].tk)}}
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+function rp(v,dec=0){return "Rp "+v.toLocaleString("id-ID",{minimumFractionDigits:dec,maximumFractionDigits:dec})}
+function rpT(v){return "Rp "+v.toLocaleString("id-ID",{minimumFractionDigits:1,maximumFractionDigits:1})+" T"}
+function fmtPct(v){return (v>0?"+":"")+v.toFixed(2)+"%"}
+function cls(v){return v>0?"pos":(v<0?"neg":"flat")}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hashStr(s){let h=1779033703;for(let i=0;i<s.length;i++){h=Math.imul(h^s.charCodeAt(i),3432918353);h=h<<13|h>>>19}return h>>>0}
+function history(co,days=252){
+  const rnd=mulberry32(hashStr(co.tk));
+  let p=co.price,out=[];
+  for(let i=0;i<days;i++){const step=(rnd()-0.48)*0.028+((co.chg||0)/200);p=p*(1+step);out.push(p)}
+  const f=co.price/out[out.length-1];
+  return out.map(v=>v*f);
+}
+function derive(c){ // nilai turunan
+  const sh=(c.shares||c.mcap*1e12/c.price)/1e9; // miliar lembar? -> gunakan shares (miliar)
+  const sharesB=c.shares||(c.mcap*1e12/c.price)/1e9;
+  const epsLast=c.fin.ni[4]*1e12/(sharesB*1e9);
+  const pe=epsLast>0?c.price/epsLast:null;
+  const pb=c.mcap/(c.fin.assets[4]-c.fin.liab[4]);
+  const evEbitda=((c.mcap+c.fin.debt[4]-c.fin.cash[4])/c.fin.ebitda[4]);
+  const roe=(c.fin.ni[4]/(c.fin.assets[4]-c.fin.liab[4]))*100;
+  const der=(c.fin.liab[4]/(c.fin.assets[4]-c.fin.liab[4]));
+  const revG=(c.fin.rev[4]/c.fin.rev[0]-1)/4*100;
+  return {sharesB,epsLast,pe,pb,evEbitda,roe,der,revG};
+}
+
+/* =========================================================
+   SIDEBAR / COMPANY LIST
+   ========================================================= */
+let cur=null;
+function renderList(q=""){
+  const el=document.getElementById("co-list");
+  const items=CO.filter(c=>(c.tk+c.nm).toLowerCase().includes(q.toLowerCase()));
+  if(!CO.length){
+    el.innerHTML=`<div style="padding:20px 10px;color:var(--muted);font-size:12px;text-align:center">Belum ada perusahaan.<br>Klik "＋ Tambah Saham" 👇</div>`;
+    return;
+  }
+  el.innerHTML=items.map(c=>`
+    <div class="co-item ${cur&&cur.tk===c.tk?"active":""}" onclick="selectCo('${c.tk}')">
+      <span class="sym">${c.tk}</span><span class="nm">${c.nm}</span>
+      <span class="px ${cls(c.chg)}">${rp(c.price)}</span>
+      <span class="del" title="Hapus" onclick="removeCo('${c.tk}',event)">✕</span>
+    </div>`).join("")||`<div style="padding:14px;color:var(--muted);font-size:12px">Tidak ditemukan 🔎</div>`;
+}
+document.getElementById("co-search").oninput=e=>renderList(e.target.value);
+
+function selectCo(tk){
+  cur=CO.find(c=>c.tk===tk)||null;
+  renderList(document.getElementById("co-search").value);
+  renderHead();
+  setTab(activetab);
+}
+function removeCo(tk,ev){
+  ev.stopPropagation();
+  const c=CO.find(x=>x.tk===tk);
+  if(!confirm("Hapus "+tk+" dari project?"))return;
+  CO=CO.filter(x=>x.tk!==tk);
+  // kalau saham dihapus adalah peer yang "not added", tandai kembali
+  CO.forEach(x=>x.peers&&x.peers.forEach(p=>{if(p.tk===tk)p.added=false}));
+  persist();
+  if(cur&&cur.tk===tk){cur=CO[0]||null;if(cur){renderHead();setTab(activetab)}else{renderEmpty()}}
+  renderList();
+}
+function renderEmpty(){
+  document.getElementById("tk-head").innerHTML="";
+  document.getElementById("content").innerHTML=`
+    <div class="card"><div class="empty-state"><div class="big">📈</div>
+    <b>Belum ada perusahaan di project ini.</b><br><br>
+    <button class="btn primary" onclick="openAddModal()">＋ Tambah Saham Pertama</button></div></div>`;
+}
+
+/* =========================================================
+   HEADER + TABS
+   ========================================================= */
+let activetab="overview";
+function renderHead(){
+  const d=derive(cur);
+  document.getElementById("tk-head").innerHTML=`
+  <div class="tk-head">
+    <div class="tk-line1">
+      <span class="tk-sym">${cur.tk}</span>
+      <span class="badge blue">IDX</span><span class="badge">${cur.sector}</span>
+      <span class="badge">Market Cap ${rpT(cur.mcap)}</span>
+    </div>
+    <div style="color:var(--muted);font-size:14px;margin-top:2px">${cur.nm}</div>
+    <div class="tk-price-row">
+      <span class="big-price">${rp(cur.price)}</span>
+      <span class="chg ${cls(cur.chg)}">${fmtPct(cur.chg)}</span>
+      <span style="color:var(--muted);font-size:12px">1D · mata uang IDR</span>
+    </div>
+    <div class="tabs">
+      <div class="tab ${activetab==="overview"?"active":""}" onclick="setTab('overview')">Overview</div>
+      <div class="tab ${activetab==="financials"?"active":""}" onclick="setTab('financials')">Financials</div>
+      <div class="tab ${activetab==="forecast"?"active":""}" onclick="setTab('forecast')">Analyst Forecast</div>
+      <div class="tab ${activetab==="valuation"?"active":""}" onclick="setTab('valuation')">Valuation</div>
+      <div class="tab ${activetab==="peers"?"active":""}" onclick="setTab('peers')">Peers / Comps</div>
+    </div>
+  </div>`;
+}
+function setTab(t){activetab=t;if(!cur)return;renderHead();
+  const el=document.getElementById("content");
+  if(t==="overview")tabOverview(el);
+  else if(t==="financials")tabFinancials(el);
+  else if(t==="forecast")tabForecast(el);
+  else if(t==="valuation")tabValuation(el);
+  else tabPeers(el);
+}
+
+/* =========================================================
+   TAB: OVERVIEW
+   ========================================================= */
+let range="6M";
+function tabOverview(el){
+  const d=derive(cur);
+  el.innerHTML=`
+  <div class="card">
+    <div class="card-h"><h3>Price Chart</h3>
+      <div class="range-btns">${["1M","3M","6M","1Y"].map(r=>`<button class="${r===range?"on":""}" onclick="setRange('${r}')">${r}</button>`).join("")}</div>
+    </div>
+    <div class="card-b"><canvas class="chart" id="pchart"></canvas></div>
+  </div>
+  <div class="card"><div class="card-h"><h3>Tentang Perusahaan</h3></div>
+    <div class="card-b" style="color:var(--muted);font-size:13px;line-height:1.65">${cur.desc||"—"}</div></div>
+  <div class="card"><div class="card-h"><h3>Key Statistics</h3></div><div class="card-b"><div class="stat-grid">
+    ${[["Market Cap",rpT(cur.mcap)],["P/E Ratio",d.pe?d.pe.toFixed(1)+"x":"—"],["P/B Ratio",d.pb.toFixed(1)+"x"],
+       ["EV/EBITDA",d.evEbitda.toFixed(1)+"x"],["EPS (FY"+cur.fin.years[4]+")",rp(d.epsLast,0)],["ROE",d.roe.toFixed(1)+"%"],
+       ["Div Yield",cur.div?cur.div.toFixed(2)+"%":"—"],["Beta",cur.beta.toFixed(2)],
+       ["Debt/Equity",d.der.toFixed(2)+"x"],["Rev Growth (4Y CAGR)",d.revG.toFixed(1)+"%"]]
+      .map(x=>`<div class="stat"><div class="l">${x[0]}</div><div class="v">${x[1]}</div></div>`).join("")}
+  </div></div></div>`;
+  drawChart();
+}
+function setRange(r){range=r;setTab("overview")}
+function drawChart(){
+  const cv=document.getElementById("pchart");if(!cv)return;
+  const days={"1M":21,"3M":63,"6M":126,"1Y":252}[range]||126;
+  const data=history(cur,days);
+  const dpr=window.devicePixelRatio||1;
+  let w=cv.clientWidth,h=cv.clientHeight;if(w<120)w=900;if(h<120)h=320;
+  cv.width=w*dpr;cv.height=h*dpr;
+  const ctx=cv.getContext("2d");ctx.scale(dpr,dpr);
+  const pad={l:64,r:14,t:14,b:26};
+  const min=Math.min(...data)*0.99,max=Math.max(...data)*1.01;
+  const X=i=>pad.l+(w-pad.l-pad.r)*i/(data.length-1);
+  const Y=v=>pad.t+(h-pad.t-pad.b)*(1-(v-min)/(max-min));
+  const up=data[data.length-1]>=data[0];
+  const col=up?"#3fb950":"#f85149";
+  ctx.strokeStyle="#232b36";ctx.fillStyle="#8b98a5";ctx.font="11px Segoe UI";ctx.textAlign="right";
+  for(let g=0;g<=4;g++){const v=min+(max-min)*g/4,y=Y(v);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillText(rp(v),pad.l-8,y+4)}
+  const grad=ctx.createLinearGradient(0,pad.t,0,h);grad.addColorStop(0,col+"44");grad.addColorStop(1,col+"05");
+  ctx.beginPath();ctx.moveTo(X(0),Y(data[0]));data.forEach((v,i)=>ctx.lineTo(X(i),Y(v)));
+  ctx.lineTo(X(data.length-1),h-pad.b);ctx.lineTo(X(0),h-pad.b);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+  ctx.beginPath();ctx.moveTo(X(0),Y(data[0]));data.forEach((v,i)=>ctx.lineTo(X(i),Y(v)));
+  ctx.strokeStyle=col;ctx.lineWidth=1.8;ctx.stroke();
+  let hov=document.createElement("div");
+  hov.style.cssText="position:absolute;pointer-events:none;background:#2f81f7;color:#fff;padding:5px 10px;border-radius:6px;font-size:12px;display:none;z-index:5;white-space:nowrap";
+  cv.parentElement.style.position="relative";cv.parentElement.appendChild(hov);
+  cv.onmousemove=e=>{const r=cv.getBoundingClientRect();
+    const i=Math.round((e.clientX-r.left-pad.l)/(w-pad.l-pad.r)*(data.length-1));
+    if(i<0||i>=data.length){hov.style.display="none";return}
+    const dd=new Date();dd.setDate(dd.getDate()-(data.length-1-i));
+    hov.style.display="block";hov.style.left=Math.min(X(i)+12,r.width-130)+"px";hov.style.top=(Y(data[i])-40)+"px";
+    hov.innerHTML=dd.toLocaleDateString("id-ID",{day:"numeric",month:"short",year:"numeric"})+" · <b>"+rp(data[i])+"</b>";};
+  cv.onmouseleave=()=>hov.style.display="none";
+}
+
+/* =========================================================
+   TAB: FINANCIALS  (As Reported vs Standardized)
+   ========================================================= */
+let stmt="income",basis="standardized";
+function tabFinancials(el){
+  const f=cur.fin,ys=f.years;
+  const std=basis==="standardized";
+  const v=(arr,i)=>std?arr[i]*1.012:arr[i]; // standardized: penyesuaian kecil (dummy)
+  const L=std
+    ?{rev:"Total Revenue",gp:"Gross Profit",ebitda:"EBITDA",op:"Operating Income",ni:"Net Income",eps:"EPS (Diluted)"}
+    :{rev:"Pendapatan Usaha",gp:"Laba Kotor",ebitda:"EBITDA",op:"Laba Usaha",ni:"Laba Tahun Berjalan",eps:"EPS"};
+  const rows={
+    income:[[L.rev,f.rev],[L.gp,f.gp],[L.ebitda,f.ebitda],[L.op,f.op],[L.ni,f.ni]],
+    balance:[["Total Assets",f.assets],["Total Liabilities",f.liab],["Cash & Setara",f.cash],["Total Debt",f.debt],["Total Equity",f.assets.map((a,i)=>a-f.liab[i])]],
+    cashflow:[["Operating Cash Flow",f.ocf],["Capex",f.capex.map(x=>-x)],["Free Cash Flow",f.ocf.map((o,i)=>o-f.capex[i])],["Dividend Paid",f.divpaid.map(x=>-x)]]
+  };
+  const epsArr=f.ni.map(n=>n*1e12/(derive(cur).sharesB*1e9));
+  const names={income:"Income Statement",balance:"Balance Sheet",cashflow:"Cash Flow Statement"};
+  el.innerHTML=`
+  <div class="card">
+    <div class="card-h"><h3>${names[stmt]}</h3>
+      <div class="seg" style="margin-left:auto">
+        ${["income","balance","cashflow"].map(s=>`<button class="${stmt===s?"on":""}" onclick="setStmt('${s}')">${{income:"Income",balance:"Balance",cashflow:"Cash Flow"}[s]}</button>`).join("")}
+      </div>
+      <div class="seg">
+        ${["as-reported","standardized"].map(b=>`<button class="${basis===b?"on":""}" onclick="setBasis('${b}')">${b==="as-reported"?"As Reported":"Standardized"}</button>`).join("")}
+      </div>
+      <span class="badge">USD/IDR konversi historis — dummy</span>
+    </div>
+    <div class="tbl-wrap">
+    <table><thead><tr><th style="width:230px">${std?"Item (Standardized)":"Item (As Reported)"}</th>${ys.map(y=>`<th>FY${y}</th>`).join("")}</tr></thead>
+    <tbody>${rows[stmt].map(r=>`<tr><td><b>${r[0]}</b></td>${ys.map((y,i)=>`<td>${rpT(v(r[1],i))}</td>`).join("")}</tr>`).join("")}
+    ${stmt==="income"?`<tr><td><b>${L.eps}</b></td>${ys.map(y=>`<td>${rp(epsArr[ys.indexOf(y)],0)}</td>`).join("")}</tr>`:""}
+    </tbody></table></div>
+  </div>
+  <div class="card"><div class="card-h"><h3>Ringkasan Margin</h3></div><div class="card-b"><div class="stat-grid">
+    ${ys.map((y,i)=>{const m=f.ni[i]/f.rev[i]*100;return `<div class="stat"><div class="l">Net Margin FY${y}</div><div class="v ${m>10?"pos":(m<3?"neg":"flat")}">${m.toFixed(1)}%</div></div>`}).join("")}
+  </div></div></div>`;
+}
+function setStmt(s){stmt=s;setTab("financials")}
+function setBasis(b){basis=b;setTab("financials")}
+
+/* =========================================================
+   TAB: ANALYST FORECAST
+   ========================================================= */
+function tabForecast(el){
+  const fc=cur.fc,ys=fc.years;
+  const upsideT=(fc.target.avg/cur.price-1)*100;
+  el.innerHTML=`
+  <div class="card">
+    <div class="card-h"><h3>Estimasi Analisis (Konsensus — dummy)</h3>
+      <span class="pill g">Buy ${fc.ratings.buy}</span><span class="pill y">Hold ${fc.ratings.hold}</span><span class="pill r">Sell ${fc.ratings.sell}</span>
+    </div>
+    <div class="tbl-wrap">
+    <table><thead><tr><th style="width:230px">Item</th>${ys.map(y=>`<th>FY${y}E</th>`).join("")}</tr></thead><tbody>
+      <tr><td><b>Revenue</b></td>${ys.map((y,i)=>`<td>${rpT(fc.rev[i])}</td>`).join("")}</tr>
+      <tr><td><b>Net Income</b></td>${ys.map(y=>`<td>${rpT(fc.ni[ys.indexOf(y)])}</td>`).join("")}</tr>
+      <tr><td><b>EPS</b></td>${ys.map(y=>`<td>${rp(fc.eps[ys.indexOf(y)],0)}</td>`).join("")}</tr>
+      <tr><td><b>Rev Growth YoY</b></td>${ys.map((y,i)=>{const g=i===0?((fc.rev[0]/cur.fin.rev[4]-1)*100):((fc.rev[i]/fc.rev[i-1]-1)*100);return `<td class="${cls(g)}">${g.toFixed(1)}%</td>`}).join("")}</tr>
+    </tbody></table></div>
+  </div>
+  <div class="card"><div class="card-h"><h3>Price Target</h3></div><div class="card-b">
+    <div class="val-grid">
+      <div>
+        <div class="fv-box">
+          <div class="l">Rata-rata Price Target</div>
+          <div class="v">${rp(fc.target.avg)}</div>
+          <div>Harga sekarang <b>${rp(cur.price)}</b> · Upside <b class="${cls(upsideT)}">${fmtPct(upsideT)}</b></div>
+        </div>
+      </div>
+      <div>
+        <table><thead><tr><th>Target</th><th>Harga</th><th>Upside/Downside</th></tr></thead><tbody>
+        ${[["Lowest",fc.target.low],["Average",fc.target.avg],["Highest",fc.target.high]].map(([n,v])=>{
+          const u=(v/cur.price-1)*100;
+          return `<tr><td><b>${n}</b></td><td>${rp(v)}</td><td class="${cls(u)}">${fmtPct(u)}</td></tr>`}).join("")}
+        </tbody></table>
+        <div style="margin-top:14px;color:var(--muted);font-size:12px">6 analis memberikan target harga dalam 12 bulan terakhir (data dummy untuk demo).</div>
+      </div>
+    </div>
+  </div></div>`;
+}
+
+/* =========================================================
+   TAB: VALUATION (DCF Builder ala TIKR)
+   ========================================================= */
+let val={growth:6.5,margin:24,wacc:11.5,terminal:3.0,tax:22};
+function tabValuation(el){
+  el.innerHTML=`
+  <div class="card"><div class="card-h"><h3>DCF Valuation Builder</h3>
+    <span class="badge blue">asumsi editable — ala TIKR</span></div>
+  <div class="card-b"><div class="val-grid">
+    <div>
+      <div class="field"><label>Revenue Growth (%/thn, 5 thn)</label><input type="number" id="v-growth" value="${val.growth}"></div>
+      <div class="field"><label>EBITDA Margin (%)</label><input type="number" id="v-margin" value="${val.margin}"></div>
+      <div class="field"><label>Tax Rate (%)</label><input type="number" id="v-tax" value="${val.tax}"></div>
+      <div class="field"><label>WACC / Discount (%)</label><input type="number" id="v-wacc" value="${val.wacc}"></div>
+      <div class="field"><label>Terminal Growth (%)</label><input type="number" id="v-term" value="${val.terminal}"></div>
+      <div class="hint">Model: FCF = EBITDA × (1 − tax) − capex proxy 10% revenue.</div>
+    </div>
+    <div id="val-out"></div>
+  </div></div></div>`;
+  ["v-growth","v-margin","v-tax","v-wacc","v-term"].forEach(id=>document.getElementById(id).oninput=calcVal);
+  calcVal();
+}
+function calcVal(){
+  val.growth=+document.getElementById("v-growth").value||0;
+  val.margin=+document.getElementById("v-margin").value||0;
+  val.tax=+document.getElementById("v-tax").value||0;
+  val.wacc=+document.getElementById("v-wacc").value||0;
+  val.terminal=+document.getElementById("v-term").value||0;
+  const d=derive(cur),f=cur.fin;
+  const g=val.growth/100,m=val.margin/100,w=val.wacc/100,tg=val.terminal/100,tx=val.tax/100;
+  let rev=f.rev[4]*1e12,pv=0,rows=[];
+  for(let y=1;y<=5;y++){
+    rev*=(1+g);
+    const ebitda=rev*m;
+    const fcf=ebitda*(1-tx)-rev*0.10;
+    const disc=fcf/Math.pow(1+w,y);
+    pv+=disc;rows.push({y,rev:rev/1e12,fcf:fcf/1e12,disc:disc/1e12});
+  }
+  const tv=rev*m*(1-tg>0?1:1)*(1-tx)/(w-tg);
+  const pvTv=tv/Math.pow(1+w,5);
+  const ev=pv+pvTv;
+  const eq=ev-(f.debt[4]-f.cash[4])*1e12;
+  const fv=eq/(d.sharesB*1e9);
+  const upside=(fv/cur.price-1)*100;
+  document.getElementById("val-out").innerHTML=`
+    <div class="fv-box">
+      <div class="l">Fair Value per Saham (DCF)</div>
+      <div class="v">${rp(fv)}</div>
+      <div>Harga saat ini <b>${rp(cur.price)}</b></div>
+      <div style="margin-top:10px"><span class="verdict ${upside>0?"under":"over"}">${upside>0?"▲ UNDERVALUED · potensi +":"▼ OVERVALUED · potensi "}${upside.toFixed(1)}%</span></div>
+    </div>
+    <div class="tbl-wrap" style="margin-top:14px">
+    <table><thead><tr><th>Tahun</th><th>Revenue (Rp T)</th><th>FCF (Rp T)</th><th>PV FCF (Rp T)</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>FY${2023+r.y}E</td><td>${r.rev.toFixed(1)}</td><td>${r.fcf.toFixed(1)}</td><td>${r.disc.toFixed(1)}</td></tr>`).join("")}
+    <tr><td><b>Terminal Value (PV)</b></td><td colspan="2"></td><td><b>${(pvTv/1e12).toFixed(1)}</b></td></tr>
+    <tr><td><b>Enterprise Value</b></td><td colspan="2"></td><td><b>${(ev/1e12).toFixed(1)}</b></td></tr>
+    <tr><td><b>(−) Net Debt</b></td><td colspan="2"></td><td><b>${(f.debt[4]-f.cash[4]).toFixed(1)}</b></td></tr>
+    <tr><td><b>Equity Value</b></td><td colspan="2"></td><td><b>${(eq/1e12).toFixed(1)}</b></td></tr>
+    </tbody></table></div>`;
+}
+
+/* =========================================================
+   TAB: PEERS / COMPS
+   ========================================================= */
+function tabPeers(el){
+  const mine=derive(cur);
+  const added=CO.filter(c=>c.tk!==cur.tk);
+  const notAdded=(cur.peers||[]).filter(p=>!CO.some(c=>c.tk===p.tk));
+  el.innerHTML=`
+  <div class="card">
+    <div class="card-h"><h3>Company Comps</h3><span class="badge">hanya company yang sudah ditambahkan ke project</span></div>
+    ${added.length?`<div class="tbl-wrap">
+    <table><thead><tr><th>Ticker</th><th>Nama</th><th>Harga</th><th>Market Cap</th><th>P/E</th><th>P/B</th><th>EV/EBITDA</th><th>ROE</th><th>Div %</th></tr></thead><tbody>
+    <tr style="background:var(--accent-soft)"><td class="pos"><b>${cur.tk}</b></td><td><b>${cur.nm}</b></td><td>${rp(cur.price)}</td><td>${rpT(cur.mcap)}</td>
+      <td>${mine.pe?mine.pe.toFixed(1)+"x":"—"}</td><td>${mine.pb.toFixed(1)}x</td><td>${mine.evEbitda.toFixed(1)}x</td><td>${mine.roe.toFixed(1)}%</td><td>${cur.div?cur.div.toFixed(2):"—"}</td></tr>
+    ${added.map(c=>{const d=derive(c);return `<tr><td class="pos"><b>${c.tk}</b></td><td>${c.nm}</td><td>${rp(c.price)}</td><td>${rpT(c.mcap)}</td>
+      <td>${d.pe?d.pe.toFixed(1)+"x":"—"}</td><td>${d.pb.toFixed(1)}x</td><td>${d.evEbitda.toFixed(1)}x</td><td>${d.roe.toFixed(1)}%</td><td>${c.div?c.div.toFixed(2):"—"}</td></tr>`}).join("")}
+    </tbody></table></div>`
+    :`<div style="padding:26px;color:var(--muted);font-size:13px">Belum ada peer yang ditambahkan. Tambahkan saham pendamping lewat tombol di bawah atau tombol <b>＋ Tambah Saham</b> di sidebar.</div>`}
+  </div>
+  ${notAdded.length?`<div class="card"><div class="card-h"><h3>Peer Terkait — Belum Ditambahkan</h3></div><div class="card-b">
+    ${notAdded.map(p=>`<div class="peer-chip"><span class="sym">${p.tk}</span><span style="color:var(--muted);font-size:12.5px">${p.nm}</span>
+      <button onclick="quickAdd('${p.tk}','${p.nm.replace(/'/g,"")}','${p.sector}')">＋ Tambah</button></div>`).join("")}
+    <div style="color:var(--muted);font-size:11.5px;margin-top:6px">Klik "＋ Tambah" untuk memasukkan peer ini ke project — datanya akan terisi otomatis (dummy) dan bisa kamu edit via form Tambah Saham.</div>
+  </div></div>`:""}`;
+}
+function quickAdd(tk,nm,sector){
+  const seeds={};
+  const base={tk,nm,ex:"IDX",sector,
+    price:7000+hashStr(tk)%3000, chg:(hashStr(nm)%40-18)/10, mcap:+(30+hashStr(sector+tk)%160).toFixed(1),
+    div:+((hashStr(tk)%30)/10).toFixed(2), beta:+(0.8+(hashStr(nm)%80)/100).toFixed(2),
+    desc:"Data dummy yang digenerate otomatis saat saham ini ditambahkan ke project. Edit data ini dengan tombol Tambah Saham bila ada pembaruan.",
+    shares:+((30+hashStr(tk)%160)*1e12/(7000+hashStr(tk)%3000)/1e9).toFixed(1)};
+  buildFinFrom(base);
+  CO.push(base);
+  // tandai peer jadi added di semua company
+  CO.forEach(c=>c.peers&&c.peers.forEach(p=>{if(p.tk===tk)p.added=true}));
+  persist();selectCo(tk);setTab("peers");
+}
+
+/* =========================================================
+   ADD / EDIT MODAL
+   ========================================================= */
+function openAddModal(editTk){
+  document.getElementById("modal-title").textContent=editTk?"Edit Saham "+editTk:"Tambah Saham";
+  document.getElementById("modal-bg").dataset.edit=editTk||"";
+  const f=["f-tk","f-nm","f-price","f-mcap","f-div","f-rev","f-margin","f-cagr","f-beta"];
+  f.forEach(id=>document.getElementById(id).value="");
+  if(editTk){
+    const c=CO.find(x=>x.tk===editTk);
+    document.getElementById("f-tk").value=c.tk;
+    document.getElementById("f-nm").value=c.nm;
+    document.getElementById("f-sector").value=c.sector;
+    document.getElementById("f-price").value=c.price;
+    document.getElementById("f-mcap").value=c.mcap;
+    document.getElementById("f-div").value=c.div||"";
+    document.getElementById("f-rev").value=c.fin.rev[4];
+    document.getElementById("f-margin").value=(c.fin.ni[4]/c.fin.rev[4]*100).toFixed(1);
+    document.getElementById("f-cagr").value=(((c.fin.rev[4]/c.fin.rev[0])**(1/4)-1)*100).toFixed(1);
+    document.getElementById("f-beta").value=c.beta;
+  }
+  document.getElementById("modal-bg").classList.add("show");
+  document.getElementById("f-tk").focus();
+}
+function closeModal(){document.getElementById("modal-bg").classList.remove("show")}
+function saveNewStock(){
+  const tk=document.getElementById("f-tk").value.trim().toUpperCase();
+  const price=+document.getElementById("f-price").value;
+  if(!tk){alert("Ticker wajib diisi!");return}
+  if(!price||price<=0){alert("Harga saham wajib diisi (angka > 0)!");return}
+  const editTk=document.getElementById("modal-bg").dataset.edit;
+  if(!editTk&&CO.some(c=>c.tk===tk)){alert("Ticker "+tk+" sudah ada di project!");return}
+  const nm=document.getElementById("f-nm").value.trim()||tk+".Tbk";
+  const mcap=+document.getElementById("f-mcap").value||+(price/1000*50).toFixed(1);
+  const div=+document.getElementById("f-div").value||0;
+  const rev=+document.getElementById("f-rev").value||+(mcap*0.8).toFixed(1);
+  const margin=+document.getElementById("f-margin").value||5;
+  const cagr=(+document.getElementById("f-cagr").value||6)/100;
+  const beta=+document.getElementById("f-beta").value||1.0;
+  const sector=document.getElementById("f-sector").value;
+  const co={tk,nm,ex:"IDX",sector,price,chg:+(((hashStr(tk)%60)-25)/10).toFixed(2),mcap,div,beta,
+    desc:"Data dummy untuk "+nm+" — ditambahkan manual lewat fitur Tambah Saham. Semua angka financial digenerate dari input kamu.",
+    shares:+(mcap*1e12/price/1e9).toFixed(1)};
+  buildFinFrom(co,cagr,margin,rev);
+  if(editTk){const i=CO.findIndex(x=>x.tk===editTk);CO[i]=co;if(cur&&cur.tk===editTk)cur=co}
+  else CO.push(co);
+  persist();closeModal();selectCo(tk);
+  if(!editTk)setTab("overview");
+}
+function buildFinFrom(co,cagr,margin,revLast){
+  cagr=cagr==null?(hashStr(co.tk)%15)/100:cagr;
+  margin=margin==null?5+(hashStr(co.nm)%12):margin;
+  revLast=revLast||+(co.mcap*0.8).toFixed(1);
+  const ys=[2019,2020,2021,2022,2023];
+  const rev=ys.map((y,i)=>+(revLast/Math.pow(1+cagr,4-i)).toFixed(1));
+  const ni=rev.map(r=>+(r*margin/100).toFixed(2));
+  const fin={years:ys,rev,
+    gp:rev.map(r=>+(r*0.42).toFixed(1)),
+    ebitda:rev.map(r=>+(r*0.26).toFixed(1)),
+    op:rev.map(r=>+(r*0.18).toFixed(1)),
+    ni,
+    assets:rev.map((r,i)=>+(r*1.9+5).toFixed(1)),
+    liab:rev.map((r,i)=>+(r*(1.1+0.03*i)).toFixed(1)),
+    cash:rev.map(r=>+(r*0.17).toFixed(1)),
+    debt:rev.map(r=>+(r*0.42).toFixed(1)),
+    ocf:rev.map(r=>+(r*0.22).toFixed(1)),
+    capex:rev.map(r=>+(r*0.07).toFixed(1)),
+    divpaid:ni.map(n=>+(n*0.3).toFixed(1))};
+  co.fin=fin;
+  co.fc={years:[2024,2025,2026],
+    rev:ys.map(()=>0)||[],
+    ni:[0,0,0],eps:[0,0,0],
+    target:{low:+(co.price*0.85).toFixed(0),avg:+(co.price*1.2).toFixed(0),high:+(co.price*1.5).toFixed(0)},
+    ratings:{buy:2,hold:2,sell:1}};
+  let r=revLast*1e12,fcRev=[],fcNi=[];
+  const g2=cagr*0.6;
+  for(let i=0;i<3;i++){r*=(1+g2);fcRev.push(+(r/1e12).toFixed(1));fcNi.push(+(r*margin/100/100*100).toFixed(2))}
+  co.fc.rev=fcRev;
+  co.fc.ni=fcNi.map(n=>+n.toFixed(2));
+  co.fc.eps=fcNi.map(n=>+(n*1e12/(co.shares*1e9)).toFixed(0));
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+selectCo(CO[0]?CO[0].tk:null);
+window.addEventListener("resize",()=>{if(activetab==="overview"&&cur)drawChart()});
+</script>
+</body>
+</html>
