@@ -1,3 +1,6 @@
 # file server lokal untuk testing — jangan di-push
 serve.ps1
 server.log
+# data riset BRPT milik user (extracted) — jangan di-push ke repo publik
+brpt-data/
+dump_xlsx.ps1

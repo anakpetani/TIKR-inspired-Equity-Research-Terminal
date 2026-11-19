@@ -200,35 +200,72 @@ canvas.chart{width:100%;height:320px;display:block;border-radius:8px}
 /* =========================================================
    DATA STORE (localStorage)
    ========================================================= */
-const STORE_KEY="tikr_stocks_v1";
+const STORE_KEY="tikr_stocks_v2";
 const SEED=[{
   tk:"BRPT", nm:"PT Barito Pacific Tbk", ex:"IDX", sector:"Energi & Petrokimia",
-  price:1115, chg:1.83, mcap:187.4, div:0.62, beta:1.35,
-  desc:"Holding investasi yang bergerak di bidang energi dan petrokimia. Melalui anak usahanya — PT Chandra Asri Pacific Tbk (petrokimia & infrastruktur kimia) dan PT Barito Renewables Energy Tbk (pembangkit listrik geotermal Star Energy) — perusahaan menawarkan eksposur ke siklus petrokimia Asia dan bisnis energi terbarukan yang stabil.",
-  shares:168,
-  fin:{ // Rp triliun, FY2019-FY2023
-    years:[2019,2020,2021,2022,2023],
-    rev:[40.2,44.9,74.4,79.0,63.8],
-    gp:[12.1,15.2,26.8,22.4,12.9],
-    ebitda:[13.5,17.8,30.1,25.2,15.8],
-    op:[9.8,12.6,23.4,18.7,10.9],
-    ni:[3.9,4.8,6.4,1.9,1.7],
-    assets:[78.0,96.0,128.0,132.0,126.0],
-    liab:[40.0,45.0,55.0,58.0,54.0],
-    cash:[5.0,7.0,12.0,14.0,11.0],
-    debt:[18.0,20.0,30.0,32.0,29.0],
-    ocf:[10.2,14.5,25.0,20.3,12.8],
-    capex:[4.0,6.0,9.0,7.0,5.0],
-    divpaid:[1.0,1.2,1.6,2.0,1.1]
+  price:675, chg:0, mcap:63.25, div:null, beta:1.35, betaNote:"asumsi model",
+  pe:25.97, peNote:"trailing (3rd party)", ev:"Rp 232.2 T", evNote:"3rd party, belum rekonsiliasi",
+  fx:16500,
+  desc:"Holding investasi dengan tiga segment utama: <b>Petrochemical & Refinery</b> (Chandra Asri — perimeter berubah sejak akuisisi FY2025), <b>Energy & Resources</b> (energi terbarukan/geotermal), dan <b>Property</b>. FY2025 mencatat bargain purchase gain US$1.868 jt yang non-recurring. 9M2026 (unaudited): revenue US$8.694 jt, EBITDA US$1.405 jt, NPAT US$616 jt. Laporan keuangan disajikan dalam US$ (audited FY2023–FY2025).",
+  shares:93.709, // miliar lembar
+  nineM:{rev:8694,ebitda:1405,npat:616}, // US$ jt, 9M2026 unaudited
+  fin:{ // AS REPORTED — US$ juta, dari FS audited FY2023–FY2025 (workbook tervalidasi)
+    currency:"USD", asReal:true, years:[2023,2024,2025],
+    rev:[2760.4,2387.0,7630.7],
+    gp:[558.1,518.8,null],
+    da:[195.8,208.6,308.9],
+    fincost:[-322.2,-349.8,-429.4],
+    pbt:[223.2,232.7,1603.0],
+    bargain:[0,0,1868.0],
+    ni:[99.8,122.9,1615.6],
+    niOwners:[26.1,56.5,489.8],
+    nci:[73.7,66.4,1125.8],
+    eps:[0.00028,0.0006,0.00523],
+    cash:[1800.2,1606.8,3007.1],
+    assets:[10149.7,10532.6,17353.2],
+    liab:[6037.7,6344.6,11307.6],
+    eqOwners:[1688.4,null,2243.4],
+    eqNci:[2423.5,null,3802.2],
+    eqTot:[4111.9,4088.0,6045.6],
+    debt:[4272.2,null,null], // komponen utang FY24/FY25 belum lengkap (data gap)
+    ocf:[140.5,-110.2,309.6],
+    capex:[-114.7,-482.4,-877.3],
+    fcf:[2.6,-592.6,-567.7],
+    divpaid:[-10.0,-5.0,null],
+    note:"FY2025 perimeter berubah karena akuisisi/konsolidasi; bargain purchase gain US$1.868 jt non-recurring. Komponen utang FY24/FY25 & EBITDA bridge masih data gap di workbook sumber.",
+    flagPerimeter:true
   },
-  fc:{ // konsensus analis (dummy)
-    years:[2024,2025,2026],
-    rev:[68.5,74.2,79.8],
-    ni:[2.0,2.5,3.0],
-    eps:[12,15,18],
-    target:{low:950,avg:1350,high:1700},
-    ratings:{buy:3,hold:2,sell:1}
+  segments:{years:[2023,2024,2025],
+    items:[{nm:"Petrochemical (& Refinery)",rev:[2082.2,1684.5,7020.0],color:"#2f81f7"},
+           {nm:"Energy & Resources",rev:[666.2,647.4,605.2],color:"#3fb950"},
+           {nm:"Property",rev:[4.8,4.5,5.2],color:"#d29922"},
+           {nm:"Others",rev:[7.2,50.6,0.3],color:"#8b98a5"}]},
+  fc:{ // FORECAST MODEL (dari workbook valuasi) — US$ juta
+    currency:"USD", years:[2026,2027,2028,2029],
+    rev:[7865.7,8108.0,8357.8,8615.4],
+    ebitda:[961.8,995.2,1029.8,1065.6],
+    fcff:[179.6,194.1,209.3,225.0],
+    note:"Berdasarkan asumsi segment dari workbook valuasi (petrochem +3%, margin 7%; energy +4%, margin 72%; dsb.) — belum di-roll dari aktual 9M2026."
   },
+  valModel:{
+    dcfFv:93.09, relFv:730.33, sotpFv:-0.04, blendedFv:205.83, upsideBlended:-69.5,
+    weights:"DCF 25% · Relative 25% · SOTP 50%",
+    wacc:[["Petrochemical & Refinery",11.2],["Energy & Resources",9.9],["Property",10.7],["Other",11.6]],
+    scenarios:[{nm:"Bear",fv:90.44,up:-86.6,note:"petro growth −5%, margin 3%"},
+               {nm:"Base",fv:876.82,up:29.9,note:"petro growth +3%, margin 7%"},
+               {nm:"Bull",fv:2228.10,up:230.1,note:"petro growth +8%, margin 11%"}],
+    warnings:["NCI memakai book-value proxy (US$3.802 jt)","Net debt override = 0 (komponen utang FY24/FY25 belum lengkap)","Listed investments & ownership mapping masih placeholder","EBITDA bridge belum terekonsiliasi"]
+  },
+  peerBench:[ // Comparable companies dari workbook (multiple referensi)
+    {nm:"PTT Global Chemical",tk:"PTTGC TB",evebitda:8.1,pe:null,pb:null,seg:"Petrochem (Thailand)"},
+    {nm:"SCG Chemicals",tk:"SCGC TB",evebitda:8.0,pe:null,pb:null,seg:"Petrochem (Thailand)"},
+    {nm:"Lotte Chemical Titan",tk:"LCT MK",evebitda:5.5,pe:null,pb:null,seg:"Petrochem (Malaysia)"},
+    {nm:"Star Petroleum Refining",tk:"SPRC TB",evebitda:4.6,pe:null,pb:null,seg:"Refinery (Thailand)"},
+    {nm:"AKR Corporindo",tk:"AKRA IJ",evebitda:5.2,pe:null,pb:null,seg:"Distribusi/infrastruktur (ID)"},
+    {nm:"Pertamina Geothermal Energy",tk:"PGEO IJ",evebitda:8.5,pe:27.6,pb:2.0,seg:"Geotermal (ID)"},
+    {nm:"Petronas Gas",tk:"PTG MK",evebitda:9.7,pe:18.1,pb:2.5,seg:"Utilitas gas (MY)"},
+    {nm:"PGN",tk:"PGAS IJ",evebitda:1.7,pe:8.7,pb:0.9,seg:"Gas (ID)"},
+    {nm:"BRPT (holding) — referensi Jan-2026",tk:"BRPT IJ",evebitda:22.5,pe:29.3,pb:null,seg:"Holding (ID)"}],
   peers:[{tk:"TPIA",nm:"Chandra Asri Pacific",sector:"Energi & Petrokimia",added:false},
          {tk:"BREN",nm:"Barito Renewables Energy",sector:"Infrastruktur & Energi Terbarukan",added:false}]
 }];
@@ -243,6 +280,21 @@ function resetData(){if(confirm("Reset semua data ke kondisi awal (hanya BRPT)?"
    ========================================================= */
 function rp(v,dec=0){return "Rp "+v.toLocaleString("id-ID",{minimumFractionDigits:dec,maximumFractionDigits:dec})}
 function rpT(v){return "Rp "+v.toLocaleString("id-ID",{minimumFractionDigits:1,maximumFractionDigits:1})+" T"}
+function fmtFin(c,v){ // nilai financial sesuai mata uang laporan
+  if(v==null||isNaN(v))return "—";
+  if(c.fin.currency==="USD")return "US$"+v.toLocaleString("en-US",{minimumFractionDigits:1,maximumFractionDigits:1})+" jt";
+  return rpT(v);
+}
+function fmtFc(c,v){ // nilai forecast
+  if(v==null||isNaN(v))return "—";
+  if(c.fc&&c.fc.currency==="USD")return "US$"+v.toLocaleString("en-US",{minimumFractionDigits:1,maximumFractionDigits:1})+" jt";
+  return rpT(v);
+}
+function fmtEps(c,v){
+  if(v==null||isNaN(v))return "—";
+  if(c.fin.currency==="USD")return "US$"+(Math.abs(v)<0.01?v.toFixed(5):v.toFixed(2));
+  return rp(v,0);
+}
 function fmtPct(v){return (v>0?"+":"")+v.toFixed(2)+"%"}
 function cls(v){return v>0?"pos":(v<0?"neg":"flat")}
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -254,17 +306,18 @@ function history(co,days=252){
   const f=co.price/out[out.length-1];
   return out.map(v=>v*f);
 }
-function derive(c){ // nilai turunan
-  const sh=(c.shares||c.mcap*1e12/c.price)/1e9; // miliar lembar? -> gunakan shares (miliar)
+function derive(c){ // nilai turunan — mata uang laporan aware
+  const f=c.fin,L=f.years.length-1;
   const sharesB=c.shares||(c.mcap*1e12/c.price)/1e9;
-  const epsLast=c.fin.ni[4]*1e12/(sharesB*1e9);
-  const pe=epsLast>0?c.price/epsLast:null;
-  const pb=c.mcap/(c.fin.assets[4]-c.fin.liab[4]);
-  const evEbitda=((c.mcap+c.fin.debt[4]-c.fin.cash[4])/c.fin.ebitda[4]);
-  const roe=(c.fin.ni[4]/(c.fin.assets[4]-c.fin.liab[4]))*100;
-  const der=(c.fin.liab[4]/(c.fin.assets[4]-c.fin.liab[4]));
-  const revG=(c.fin.rev[4]/c.fin.rev[0]-1)/4*100;
-  return {sharesB,epsLast,pe,pb,evEbitda,roe,der,revG};
+  const epsLast=f.eps?f.eps[L]:(f.niOwners&&f.niOwners[L]!=null?f.niOwners[L]*1e6/(sharesB*1e9):(f.currency==="IDR"?f.ni[L]*1e12/(sharesB*1e9):null));
+  const pe=c.pe||(epsLast&&f.currency==="IDR"?c.price/epsLast:null);
+  const eqTot=f.assets[L]-f.liab[L];
+  const pb=f.currency==="IDR"?c.mcap/eqTot:(c.pb||null);
+  const evEbitda=(f.currency==="IDR"&&f.ebitda&&f.debt&&f.debt[L]!=null)?((c.mcap+f.debt[L]-f.cash[L])/f.ebitda[L]):(c.evEbitda||null);
+  const roe=f.ni&&f.ni[L]!=null?(f.ni[L]/eqTot)*100:null;
+  const der=f.liab[L]/eqTot;
+  const revG=f.flagPerimeter?null:((f.rev[L]/f.rev[0]-1)/L*100);
+  return {sharesB,epsLast,pe,pb,evEbitda,roe,der,revG,eqTot,L};
 }
 
 /* =========================================================
@@ -418,6 +471,7 @@ function setTab(t){activetab=t;if(!cur)return;renderHead();
 let range="6M";
 function tabOverview(el){
   const d=derive(cur);
+  const seg=cur.segments;
   el.innerHTML=`
   <div class="card">
     <div class="card-h"><h3>Price Chart</h3>
@@ -427,11 +481,29 @@ function tabOverview(el){
   </div>
   <div class="card"><div class="card-h"><h3>Tentang Perusahaan</h3></div>
     <div class="card-b" style="color:var(--muted);font-size:13px;line-height:1.65">${cur.desc||"—"}</div></div>
-  <div class="card"><div class="card-h"><h3>Key Statistics</h3></div><div class="card-b"><div class="stat-grid">
-    ${[["Market Cap",rpT(cur.mcap)],["P/E Ratio",d.pe?d.pe.toFixed(1)+"x":"—"],["P/B Ratio",d.pb.toFixed(1)+"x"],
-       ["EV/EBITDA",d.evEbitda.toFixed(1)+"x"],["EPS (FY"+cur.fin.years[4]+")",rp(d.epsLast,0)],["ROE",d.roe.toFixed(1)+"%"],
-       ["Div Yield",cur.div?cur.div.toFixed(2)+"%":"—"],["Beta",cur.beta.toFixed(2)],
-       ["Debt/Equity",d.der.toFixed(2)+"x"],["Rev Growth (4Y CAGR)",d.revG.toFixed(1)+"%"]]
+  ${seg?`<div class="card"><div class="card-h"><h3>Revenue per Segment (US$ jt, as reported)</h3></div><div class="card-b">
+    ${seg.items.map(it=>{const last=it.rev[seg.years.length-1];const tot=seg.items.reduce((s,x)=>s+x.rev[seg.years.length-1],0);
+      return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:3px"><span>${it.nm}</span><b>US$${last.toLocaleString("en-US",{maximumFractionDigits:1})} jt (${(last/tot*100).toFixed(1)}%)</b></div>
+      <div style="background:var(--panel2);border-radius:5px;height:10px;overflow:hidden"><div style="width:${(last/tot*100).toFixed(1)}%;height:100%;background:${it.color}"></div></div>
+      <div style="color:var(--muted);font-size:11px;margin-top:2px">${seg.years.map((y,i)=>"FY"+y+": "+it.rev[i].toLocaleString("en-US",{maximumFractionDigits:1})).join(" · ")}</div>
+    </div>`}).join("")}
+  </div></div>`:""}
+  <div class="card"><div class="card-h"><h3>Key Statistics</h3><span class="badge">financials: ${cur.fin.currency==="USD"?"US$ (as reported, audited)":"Rp"}</span></div><div class="card-b"><div class="stat-grid">
+    ${[["Market Cap",rpT(cur.mcap)],
+       ["P/E "+(cur.peNote?"("+cur.peNote+")":"(TTM)"),d.pe?d.pe.toFixed(1)+"x":"—"],
+       ["P/B Ratio",d.pb?d.pb.toFixed(1)+"x":"—"],
+       ["EV "+(cur.evNote?"("+cur.evNote+")":""),cur.ev||"—"],
+       ["EPS (FY"+cur.fin.years[d.L]+")",fmtEps(cur,d.epsLast)],
+       ["ROE",d.roe!=null?d.roe.toFixed(1)+"%":"—"],
+       ["Div Yield",cur.div?cur.div.toFixed(2)+"%":"—"],
+       ["Beta "+(cur.betaNote?"("+cur.betaNote+")":""),cur.beta!=null?cur.beta.toFixed(2):"—"],
+       ["Debt/Equity",d.der.toFixed(2)+"x"],
+       ["Rev Growth CAGR",d.revG!=null?d.revG.toFixed(1)+"%":"— (perimeter berubah)"],
+       cur.nineM?["9M2026 Revenue","US$"+cur.nineM.rev.toLocaleString("en-US")+" jt"]:null,
+       cur.nineM?["9M2026 EBITDA","US$"+cur.nineM.ebitda.toLocaleString("en-US")+" jt"]:null,
+       cur.nineM?["9M2026 NPAT","US$"+cur.nineM.npat.toLocaleString("en-US")+" jt"]:null]
+      .filter(Boolean)
       .map(x=>`<div class="stat"><div class="l">${x[0]}</div><div class="v">${x[1]}</div></div>`).join("")}
   </div></div></div>`;
   drawChart();
@@ -488,38 +560,46 @@ function drawChart(){
    ========================================================= */
 let stmt="income",basis="standardized";
 function tabFinancials(el){
-  const f=cur.fin,ys=f.years;
-  const std=basis==="standardized";
-  const v=(arr,i)=>std?arr[i]*1.012:arr[i]; // standardized: penyesuaian kecil (dummy)
-  const L=std
-    ?{rev:"Total Revenue",gp:"Gross Profit",ebitda:"EBITDA",op:"Operating Income",ni:"Net Income",eps:"EPS (Diluted)"}
-    :{rev:"Pendapatan Usaha",gp:"Laba Kotor",ebitda:"EBITDA",op:"Laba Usaha",ni:"Laba Tahun Berjalan",eps:"EPS"};
+  const f=cur.fin,ys=f.years,L=ys.length-1;
+  const std=basis==="standardized"&&!f.asReal;
+  const v=(arr,i)=>std?arr[i]*1.012:arr[i];
   const rows={
-    income:[[L.rev,f.rev],[L.gp,f.gp],[L.ebitda,f.ebitda],[L.op,f.op],[L.ni,f.ni]],
-    balance:[["Total Assets",f.assets],["Total Liabilities",f.liab],["Cash & Setara",f.cash],["Total Debt",f.debt],["Total Equity",f.assets.map((a,i)=>a-f.liab[i])]],
-    cashflow:[["Operating Cash Flow",f.ocf],["Capex",f.capex.map(x=>-x)],["Free Cash Flow",f.ocf.map((o,i)=>o-f.capex[i])],["Dividend Paid",f.divpaid.map(x=>-x)]]
+    income:[
+      ["Revenue",f.rev],["Gross Profit",f.gp],["EBITDA",f.ebitda],["D&A",f.da],
+      ["Finance costs",f.fincost],["Profit before tax",f.pbt],["Bargain purchase gain",f.bargain],
+      ["Net income",f.ni],["NI attributable to owners",f.niOwners],["NI — non-controlling interests",f.nci]
+    ].filter(r=>r[1]&&r[1].some(x=>x!=null)),
+    balance:[
+      ["Cash & equivalents",f.cash],["Total assets",f.assets],["Total liabilities",f.liab],
+      ["Total debt",f.debt],["Equity — owners",f.eqOwners],["Equity — NCI",f.eqNci],["Total equity",f.eqTot||(f.assets&&f.liab?f.assets.map((a,i)=>a-f.liab[i]):null)]
+    ].filter(r=>r[1]&&r[1].some(x=>x!=null)),
+    cashflow:[
+      ["Operating cash flow",f.ocf],["Capex",f.capex],["Free cash flow",f.fcf||(f.ocf&&f.capex?f.ocf.map((o,i)=>o-f.capex[i]):null)],["Dividends paid",f.divpaid]
+    ].filter(r=>r[1]&&r[1].some(x=>x!=null))
   };
-  const epsArr=f.ni.map(n=>n*1e12/(derive(cur).sharesB*1e9));
   const names={income:"Income Statement",balance:"Balance Sheet",cashflow:"Cash Flow Statement"};
+  const unitLbl=f.currency==="USD"?"US$ juta — as reported (audited FS)":"Rp triliun";
   el.innerHTML=`
   <div class="card">
     <div class="card-h"><h3>${names[stmt]}</h3>
       <div class="seg" style="margin-left:auto">
         ${["income","balance","cashflow"].map(s=>`<button class="${stmt===s?"on":""}" onclick="setStmt('${s}')">${{income:"Income",balance:"Balance",cashflow:"Cash Flow"}[s]}</button>`).join("")}
       </div>
-      <div class="seg">
+      ${f.asReal?`<span class="badge blue">As Reported — data nyata dari FS audited (workbook tervalidasi)</span>`
+      :`<div class="seg">
         ${["as-reported","standardized"].map(b=>`<button class="${basis===b?"on":""}" onclick="setBasis('${b}')">${b==="as-reported"?"As Reported":"Standardized"}</button>`).join("")}
-      </div>
-      <span class="badge">USD/IDR konversi historis — dummy</span>
+      </div>`}
+      <span class="badge">${unitLbl}</span>
     </div>
+    ${f.note?`<div style="padding:10px 18px;color:var(--gold);font-size:12px;border-bottom:1px solid var(--border)">⚠ ${f.note}</div>`:""}
     <div class="tbl-wrap">
-    <table><thead><tr><th style="width:230px">${std?"Item (Standardized)":"Item (As Reported)"}</th>${ys.map(y=>`<th>FY${y}</th>`).join("")}</tr></thead>
-    <tbody>${rows[stmt].map(r=>`<tr><td><b>${r[0]}</b></td>${ys.map((y,i)=>`<td>${rpT(v(r[1],i))}</td>`).join("")}</tr>`).join("")}
-    ${stmt==="income"?`<tr><td><b>${L.eps}</b></td>${ys.map(y=>`<td>${rp(epsArr[ys.indexOf(y)],0)}</td>`).join("")}</tr>`:""}
+    <table><thead><tr><th style="width:240px">Item</th>${ys.map(y=>`<th>FY${y}</th>`).join("")}</tr></thead>
+    <tbody>${rows[stmt].map(r=>`<tr><td><b>${r[0]}</b></td>${ys.map((y,i)=>`<td>${fmtFin(cur,v(r[1],i))}</td>`).join("")}</tr>`).join("")}
+    ${stmt==="income"&&f.eps?`<tr><td><b>EPS</b></td>${ys.map((y,i)=>`<td>${fmtEps(cur,f.eps[i])}</td>`).join("")}</tr>`:""}
     </tbody></table></div>
   </div>
   <div class="card"><div class="card-h"><h3>Ringkasan Margin</h3></div><div class="card-b"><div class="stat-grid">
-    ${ys.map((y,i)=>{const m=f.ni[i]/f.rev[i]*100;return `<div class="stat"><div class="l">Net Margin FY${y}</div><div class="v ${m>10?"pos":(m<3?"neg":"flat")}">${m.toFixed(1)}%</div></div>`}).join("")}
+    ${ys.map((y,i)=>{if(f.ni[i]==null)return "";const m=f.ni[i]/f.rev[i]*100;return `<div class="stat"><div class="l">Net Margin FY${y}</div><div class="v ${m>10?"pos":(m<3?"neg":"flat")}">${m.toFixed(1)}%</div></div>`}).join("")}
   </div></div></div>`;
 }
 function setStmt(s){stmt=s;setTab("financials")}
@@ -530,57 +610,87 @@ function setBasis(b){basis=b;setTab("financials")}
    ========================================================= */
 function tabForecast(el){
   const fc=cur.fc,ys=fc.years;
-  const upsideT=(fc.target.avg/cur.price-1)*100;
+  const vm=cur.valModel;
+  const lastRev=cur.fin.rev[cur.fin.years.length-1];
+  const frows=[
+    ["Revenue","rev"],fc.ebitda?["EBITDA","ebitda"]:null,fc.fcff?["FCFF","fcff"]:null,
+    fc.ni&&fc.ni.some(x=>x)?["Net Income","ni"]:null,
+    fc.eps&&fc.eps.some(x=>x)?["EPS","eps"]:null
+  ].filter(Boolean);
   el.innerHTML=`
   <div class="card">
-    <div class="card-h"><h3>Estimasi Analisis (Konsensus — dummy)</h3>
-      <span class="pill g">Buy ${fc.ratings.buy}</span><span class="pill y">Hold ${fc.ratings.hold}</span><span class="pill r">Sell ${fc.ratings.sell}</span>
+    <div class="card-h"><h3>${vm?"Model Forecast "+ys[0]+"E–"+ys[ys.length-1]+"E (dari workbook valuasi)":"Estimasi Analisis (Konsensus — dummy)"}</h3>
+      ${fc.ratings?`<span class="pill g">Buy ${fc.ratings.buy}</span><span class="pill y">Hold ${fc.ratings.hold}</span><span class="pill r">Sell ${fc.ratings.sell}</span>`:`<span class="badge blue">US$ juta</span>`}
     </div>
+    ${fc.note?`<div style="padding:10px 18px;color:var(--gold);font-size:12px;border-bottom:1px solid var(--border)">⚠ ${fc.note}</div>`:""}
     <div class="tbl-wrap">
     <table><thead><tr><th style="width:230px">Item</th>${ys.map(y=>`<th>FY${y}E</th>`).join("")}</tr></thead><tbody>
-      <tr><td><b>Revenue</b></td>${ys.map((y,i)=>`<td>${rpT(fc.rev[i])}</td>`).join("")}</tr>
-      <tr><td><b>Net Income</b></td>${ys.map(y=>`<td>${rpT(fc.ni[ys.indexOf(y)])}</td>`).join("")}</tr>
-      <tr><td><b>EPS</b></td>${ys.map(y=>`<td>${rp(fc.eps[ys.indexOf(y)],0)}</td>`).join("")}</tr>
-      <tr><td><b>Rev Growth YoY</b></td>${ys.map((y,i)=>{const g=i===0?((fc.rev[0]/cur.fin.rev[4]-1)*100):((fc.rev[i]/fc.rev[i-1]-1)*100);return `<td class="${cls(g)}">${g.toFixed(1)}%</td>`}).join("")}</tr>
+      ${frows.map(r=>`<tr><td><b>${r[0]}</b></td>${ys.map((y,i)=>`<td>${r[1]==="eps"?(cur.fc.currency==="USD"?"US$"+(fc.eps[i]||0).toFixed(4):rp(fc.eps[i],0)):fmtFc(cur,fc[r[1]][i])}</td>`).join("")}</tr>`).join("")}
+      <tr><td><b>Rev Growth YoY</b></td>${ys.map((y,i)=>{const g=i===0?((fc.rev[0]/lastRev-1)*100):((fc.rev[i]/fc.rev[i-1]-1)*100);return `<td class="${cls(g)}">${g.toFixed(1)}%</td>`}).join("")}</tr>
     </tbody></table></div>
   </div>
-  <div class="card"><div class="card-h"><h3>Price Target</h3></div><div class="card-b">
+  ${vm?`
+  <div class="card"><div class="card-h"><h3>Valuation Summary — Triangulasi (dari workbook)</h3></div><div class="card-b">
     <div class="val-grid">
-      <div>
-        <div class="fv-box">
-          <div class="l">Rata-rata Price Target</div>
-          <div class="v">${rp(fc.target.avg)}</div>
-          <div>Harga sekarang <b>${rp(cur.price)}</b> · Upside <b class="${cls(upsideT)}">${fmtPct(upsideT)}</b></div>
-        </div>
-      </div>
-      <div>
-        <table><thead><tr><th>Target</th><th>Harga</th><th>Upside/Downside</th></tr></thead><tbody>
-        ${[["Lowest",fc.target.low],["Average",fc.target.avg],["Highest",fc.target.high]].map(([n,v])=>{
-          const u=(v/cur.price-1)*100;
-          return `<tr><td><b>${n}</b></td><td>${rp(v)}</td><td class="${cls(u)}">${fmtPct(u)}</td></tr>`}).join("")}
-        </tbody></table>
-        <div style="margin-top:14px;color:var(--muted);font-size:12px">6 analis memberikan target harga dalam 12 bulan terakhir (data dummy untuk demo).</div>
+      <div><div class="fv-box">
+        <div class="l">Blended Fair Value (weighted)</div>
+        <div class="v">${rp(vm.blendedFv)}</div>
+        <div>Harga <b>${rp(cur.price)}</b> · Upside <b class="${cls(vm.upsideBlended)}">${fmtPct(vm.upsideBlended)}</b></div>
+        <div style="margin-top:8px;font-size:11.5px;color:#9db1d8">Bobot: ${vm.weights}</div>
+      </div></div>
+      <div><table><thead><tr><th>Metode</th><th>FV/share</th><th>Bobot</th></tr></thead><tbody>
+        ${[["DCF",vm.dcfFv,"25%"],["Relative (peer multiples)",vm.relFv,"25%"],["SOTP",vm.sotpFv,"50%"]].map(([n,v,w])=>`<tr><td><b>${n}</b></td><td>${rp(v)}</td><td>${w}</td></tr>`).join("")}
+        <tr><td><b>Blended</b></td><td><b>${rp(vm.blendedFv)}</b></td><td>100%</td></tr>
+      </tbody></table>
+      <div style="margin-top:10px;color:var(--muted);font-size:11.5px">⚠ Warning model: ${vm.warnings.join(" · ")}</div>
       </div>
     </div>
-  </div></div>`;
+  </div></div>
+  <div class="card"><div class="card-h"><h3>Scenario Analysis (SOTP bridge)</h3></div><div class="card-b">
+    <table><thead><tr><th>Skenario</th><th>Asumsi</th><th>FV/share</th><th>Upside/Downside</th></tr></thead><tbody>
+    ${vm.scenarios.map(s=>`<tr><td><b>${s.nm}</b></td><td style="color:var(--muted);font-size:12px">${s.note}</td><td>${rp(s.fv)}</td><td class="${cls(s.up)}">${fmtPct(s.up)}</td></tr>`).join("")}
+    </tbody></table>
+    <div style="margin-top:10px;color:var(--muted);font-size:11.5px">Skenario berbasis exit-multiple/DCF bridge dari workbook; hasil Bear/Base/Bull belum full rebuild DCF.</div>
+  </div></div>`
+  :fc.target?`
+  <div class="card"><div class="card-h"><h3>Price Target</h3></div><div class="card-b">
+    <div class="val-grid">
+      <div><div class="fv-box">
+        <div class="l">Rata-rata Price Target</div>
+        <div class="v">${rp(fc.target.avg)}</div>
+        <div>Harga sekarang <b>${rp(cur.price)}</b> · Upside <b class="${cls((fc.target.avg/cur.price-1)*100)}">${fmtPct((fc.target.avg/cur.price-1)*100)}</b></div>
+      </div></div>
+      <div><table><thead><tr><th>Target</th><th>Harga</th><th>Upside/Downside</th></tr></thead><tbody>
+      ${[["Lowest",fc.target.low],["Average",fc.target.avg],["Highest",fc.target.high]].map(([n,v])=>{const u=(v/cur.price-1)*100;
+        return `<tr><td><b>${n}</b></td><td>${rp(v)}</td><td class="${cls(u)}">${fmtPct(u)}</td></tr>`}).join("")}
+      </tbody></table>
+      <div style="margin-top:14px;color:var(--muted);font-size:12px">6 analis memberikan target harga dalam 12 bulan terakhir (data dummy untuk demo).</div>
+      </div>
+    </div>
+  </div></div>`:""}`;
 }
 
 /* =========================================================
    TAB: VALUATION (DCF Builder ala TIKR)
    ========================================================= */
-let val={growth:6.5,margin:24,wacc:11.5,terminal:3.0,tax:22};
+let val={};
+function valDefaults(c){
+  if(c.valDefaults)return c.valDefaults;
+  return c.fin.currency==="USD"?{growth:3,margin:12.2,tax:22,wacc:10,terminal:2.5}:{growth:6.5,margin:24,wacc:11.5,terminal:3.0,tax:22};
+}
 function tabValuation(el){
+  const dv=valDefaults(cur);
   el.innerHTML=`
   <div class="card"><div class="card-h"><h3>DCF Valuation Builder</h3>
     <span class="badge blue">asumsi editable — ala TIKR</span></div>
   <div class="card-b"><div class="val-grid">
     <div>
-      <div class="field"><label>Revenue Growth (%/thn, 5 thn)</label><input type="number" id="v-growth" value="${val.growth}"></div>
-      <div class="field"><label>EBITDA Margin (%)</label><input type="number" id="v-margin" value="${val.margin}"></div>
-      <div class="field"><label>Tax Rate (%)</label><input type="number" id="v-tax" value="${val.tax}"></div>
-      <div class="field"><label>WACC / Discount (%)</label><input type="number" id="v-wacc" value="${val.wacc}"></div>
-      <div class="field"><label>Terminal Growth (%)</label><input type="number" id="v-term" value="${val.terminal}"></div>
-      <div class="hint">Model: FCF = EBITDA × (1 − tax) − capex proxy 10% revenue.</div>
+      <div class="field"><label>Revenue Growth (%/thn, 5 thn)</label><input type="number" id="v-growth" value="${dv.growth}"></div>
+      <div class="field"><label>EBITDA Margin (%)</label><input type="number" id="v-margin" value="${dv.margin}"></div>
+      <div class="field"><label>Tax Rate (%)</label><input type="number" id="v-tax" value="${dv.tax}"></div>
+      <div class="field"><label>WACC / Discount (%)</label><input type="number" id="v-wacc" value="${dv.wacc}"></div>
+      <div class="field"><label>Terminal Growth (%)</label><input type="number" id="v-term" value="${dv.terminal}"></div>
+      <div class="hint">Model: FCF = EBITDA × (1 − tax) − capex proxy 10% revenue. Nilai ke IDR/share lewat FX ${cur.fx?"US$/IDR "+cur.fx.toLocaleString("id-ID"):"1:1 (laporan Rp)"}.</div>
     </div>
     <div id="val-out"></div>
   </div></div></div>`;
@@ -588,41 +698,49 @@ function tabValuation(el){
   calcVal();
 }
 function calcVal(){
-  val.growth=+document.getElementById("v-growth").value||0;
-  val.margin=+document.getElementById("v-margin").value||0;
-  val.tax=+document.getElementById("v-tax").value||0;
-  val.wacc=+document.getElementById("v-wacc").value||0;
-  val.terminal=+document.getElementById("v-term").value||0;
-  const d=derive(cur),f=cur.fin;
-  const g=val.growth/100,m=val.margin/100,w=val.wacc/100,tg=val.terminal/100,tx=val.tax/100;
-  let rev=f.rev[4]*1e12,pv=0,rows=[];
+  const dv=valDefaults(cur);
+  cur.valDefaults={
+    growth:+document.getElementById("v-growth").value||dv.growth,
+    margin:+document.getElementById("v-margin").value||dv.margin,
+    tax:+document.getElementById("v-tax").value||dv.tax,
+    wacc:+document.getElementById("v-wacc").value||dv.wacc,
+    terminal:+document.getElementById("v-term").value||dv.terminal};
+  const g=cur.valDefaults.growth/100,m=cur.valDefaults.margin/100,w=cur.valDefaults.wacc/100,tg=cur.valDefaults.terminal/100,tx=cur.valDefaults.tax/100;
+  const d=derive(cur),f=cur.fin,L=f.years.length-1;
+  const isUSD=f.currency==="USD",fx=cur.fx||1,mult=isUSD?1e6:1e12;
+  const uLbl=isUSD?(x)=>"US$"+x.toLocaleString("en-US",{maximumFractionDigits:1})+" jt":(x)=>"Rp"+x.toLocaleString("id-ID",{maximumFractionDigits:1})+" T";
+  let rev=f.rev[L]*mult,pv=0,rows=[];
   for(let y=1;y<=5;y++){
     rev*=(1+g);
     const ebitda=rev*m;
     const fcf=ebitda*(1-tx)-rev*0.10;
     const disc=fcf/Math.pow(1+w,y);
-    pv+=disc;rows.push({y,rev:rev/1e12,fcf:fcf/1e12,disc:disc/1e12});
+    pv+=disc;rows.push({y,rev:rev/mult,fcf:fcf/mult,disc:disc/mult});
   }
-  const tv=rev*m*(1-tg>0?1:1)*(1-tx)/(w-tg);
+  const tv=rev*m*(1-tx)/(w-tg);
   const pvTv=tv/Math.pow(1+w,5);
   const ev=pv+pvTv;
-  const eq=ev-(f.debt[4]-f.cash[4])*1e12;
-  const fv=eq/(d.sharesB*1e9);
+  const debt=f.debt&&f.debt[L]!=null?f.debt[L]:null;
+  const netDebt=debt!=null?(debt-f.cash[L])*mult:0; // placeholder 0 bila utang tidak lengkap
+  const eq=ev-netDebt;
+  const perShareLocal=eq/(d.sharesB*1e9); // per share dlm mata uang laporan
+  const fv=perShareLocal*(isUSD?fx:1); // IDR/share
   const upside=(fv/cur.price-1)*100;
   document.getElementById("val-out").innerHTML=`
     <div class="fv-box">
-      <div class="l">Fair Value per Saham (DCF)</div>
+      <div class="l">Fair Value per Saham (DCF sederhana)</div>
       <div class="v">${rp(fv)}</div>
       <div>Harga saat ini <b>${rp(cur.price)}</b></div>
       <div style="margin-top:10px"><span class="verdict ${upside>0?"under":"over"}">${upside>0?"▲ UNDERVALUED · potensi +":"▼ OVERVALUED · potensi "}${upside.toFixed(1)}%</span></div>
     </div>
+    ${debt==null?`<div style="margin-top:10px;color:var(--gold);font-size:12px">⚠ Net debt memakai placeholder 0 — komponen utang FY terakhir belum lengkap di data sumber.</div>`:""}
     <div class="tbl-wrap" style="margin-top:14px">
-    <table><thead><tr><th>Tahun</th><th>Revenue (Rp T)</th><th>FCF (Rp T)</th><th>PV FCF (Rp T)</th></tr></thead><tbody>
-    ${rows.map(r=>`<tr><td>FY${2023+r.y}E</td><td>${r.rev.toFixed(1)}</td><td>${r.fcf.toFixed(1)}</td><td>${r.disc.toFixed(1)}</td></tr>`).join("")}
-    <tr><td><b>Terminal Value (PV)</b></td><td colspan="2"></td><td><b>${(pvTv/1e12).toFixed(1)}</b></td></tr>
-    <tr><td><b>Enterprise Value</b></td><td colspan="2"></td><td><b>${(ev/1e12).toFixed(1)}</b></td></tr>
-    <tr><td><b>(−) Net Debt</b></td><td colspan="2"></td><td><b>${(f.debt[4]-f.cash[4]).toFixed(1)}</b></td></tr>
-    <tr><td><b>Equity Value</b></td><td colspan="2"></td><td><b>${(eq/1e12).toFixed(1)}</b></td></tr>
+    <table><thead><tr><th>Tahun</th><th>Revenue</th><th>FCF</th><th>PV FCF</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>FY${f.years[L]+r.y}E</td><td>${uLbl(r.rev)}</td><td>${uLbl(r.fcf)}</td><td>${uLbl(r.disc)}</td></tr>`).join("")}
+    <tr><td><b>Terminal Value (PV)</b></td><td colspan="2"></td><td><b>${uLbl(pvTv/mult)}</b></td></tr>
+    <tr><td><b>Enterprise Value</b></td><td colspan="2"></td><td><b>${uLbl(ev/mult)}</b></td></tr>
+    <tr><td><b>(−) Net Debt</b></td><td colspan="2"></td><td><b>${debt!=null?uLbl(netDebt/mult):"0 (placeholder)"}</b></td></tr>
+    <tr><td><b>Equity Value</b></td><td colspan="2"></td><td><b>${uLbl(eq/mult)}</b></td></tr>
     </tbody></table></div>`;
 }
 
@@ -636,15 +754,22 @@ function tabPeers(el){
   el.innerHTML=`
   <div class="card">
     <div class="card-h"><h3>Company Comps</h3><span class="badge">hanya company yang sudah ditambahkan ke project</span></div>
-    ${added.length?`<div class="tbl-wrap">
+    <div class="tbl-wrap">
     <table><thead><tr><th>Ticker</th><th>Nama</th><th>Harga</th><th>Market Cap</th><th>P/E</th><th>P/B</th><th>EV/EBITDA</th><th>ROE</th><th>Div %</th></tr></thead><tbody>
     <tr style="background:var(--accent-soft)"><td class="pos"><b>${cur.tk}</b></td><td><b>${cur.nm}</b></td><td>${rp(cur.price)}</td><td>${rpT(cur.mcap)}</td>
-      <td>${mine.pe?mine.pe.toFixed(1)+"x":"—"}</td><td>${mine.pb.toFixed(1)}x</td><td>${mine.evEbitda.toFixed(1)}x</td><td>${mine.roe.toFixed(1)}%</td><td>${cur.div?cur.div.toFixed(2):"—"}</td></tr>
+      <td>${mine.pe?mine.pe.toFixed(1)+"x":"—"}</td><td>${mine.pb?mine.pb.toFixed(1)+"x":"—"}</td><td>${mine.evEbitda?mine.evEbitda.toFixed(1)+"x":"—"}</td><td>${mine.roe!=null?mine.roe.toFixed(1)+"%":"—"}</td><td>${cur.div?cur.div.toFixed(2):"—"}</td></tr>
     ${added.map(c=>{const d=derive(c);return `<tr><td class="pos"><b>${c.tk}</b></td><td>${c.nm}</td><td>${rp(c.price)}</td><td>${rpT(c.mcap)}</td>
-      <td>${d.pe?d.pe.toFixed(1)+"x":"—"}</td><td>${d.pb.toFixed(1)}x</td><td>${d.evEbitda.toFixed(1)}x</td><td>${d.roe.toFixed(1)}%</td><td>${c.div?c.div.toFixed(2):"—"}</td></tr>`}).join("")}
-    </tbody></table></div>`
-    :`<div style="padding:26px;color:var(--muted);font-size:13px">Belum ada peer yang ditambahkan. Tambahkan saham pendamping lewat tombol di bawah atau tombol <b>＋ Tambah Saham</b> di sidebar.</div>`}
+      <td>${d.pe?d.pe.toFixed(1)+"x":"—"}</td><td>${d.pb?d.pb.toFixed(1)+"x":"—"}</td><td>${d.evEbitda?d.evEbitda.toFixed(1)+"x":"—"}</td><td>${d.roe!=null?d.roe.toFixed(1)+"%":"—"}</td><td>${c.div?c.div.toFixed(2):"—"}</td></tr>`}).join("")}
+    </tbody></table></div>
+    ${!added.length?`<div style="padding:16px 18px;color:var(--muted);font-size:12.5px">Belum ada peer lain di project. Tambahkan lewat tombol <b>＋ Tambah Saham</b> di sidebar atau chip di bawah.</div>`:""}
   </div>
+  ${cur.peerBench?`<div class="card"><div class="card-h"><h3>Peer Benchmark (dari workbook valuasi)</h3><span class="badge">multiple referensi per segment</span></div><div class="tbl-wrap">
+    <table><thead><tr><th>Perusahaan</th><th>Ticker</th><th>Segment</th><th>EV/EBITDA</th><th>P/E</th><th>P/B</th></tr></thead><tbody>
+    ${cur.peerBench.map(p=>`<tr><td>${p.nm}</td><td class="tk-bold">${p.tk}</td><td style="color:var(--muted);font-size:12px">${p.seg}</td>
+      <td>${p.evebitda!=null?p.evebitda.toFixed(1)+"x":"—"}</td><td>${p.pe!=null?p.pe.toFixed(1)+"x":"—"}</td><td>${p.pb!=null?p.pb.toFixed(1)+"x":"—"}</td></tr>`).join("")}
+    </tbody></table></div>
+    <div style="padding:12px 18px;color:var(--muted);font-size:11.5px">Multiple dari broker research & market screen (Jan-2026 / RHB 2025 / referensi lain — lihat source register workbook).</div>
+  </div>`:""}
   ${notAdded.length?`<div class="card"><div class="card-h"><h3>Peer Terkait — Belum Ditambahkan</h3></div><div class="card-b">
     ${notAdded.map(p=>`<div class="peer-chip"><span class="sym">${p.tk}</span><span style="color:var(--muted);font-size:12.5px">${p.nm}</span>
       <button onclick="quickAdd('${p.tk}','${p.nm.replace(/'/g,"")}','${p.sector}')">＋ Tambah</button></div>`).join("")}
@@ -675,16 +800,17 @@ function openAddModal(editTk){
   f.forEach(id=>document.getElementById(id).value="");
   if(editTk){
     const c=CO.find(x=>x.tk===editTk);
+    const L=c.fin.years.length-1;
     document.getElementById("f-tk").value=c.tk;
     document.getElementById("f-nm").value=c.nm;
     document.getElementById("f-sector").value=c.sector;
     document.getElementById("f-price").value=c.price;
     document.getElementById("f-mcap").value=c.mcap;
     document.getElementById("f-div").value=c.div||"";
-    document.getElementById("f-rev").value=c.fin.rev[4];
-    document.getElementById("f-margin").value=(c.fin.ni[4]/c.fin.rev[4]*100).toFixed(1);
-    document.getElementById("f-cagr").value=(((c.fin.rev[4]/c.fin.rev[0])**(1/4)-1)*100).toFixed(1);
-    document.getElementById("f-beta").value=c.beta;
+    document.getElementById("f-rev").value=c.fin.rev[L];
+    document.getElementById("f-margin").value=(c.fin.ni[L]/c.fin.rev[L]*100).toFixed(1);
+    document.getElementById("f-cagr").value=(((c.fin.rev[L]/c.fin.rev[0])**(1/L)-1)*100).toFixed(1);
+    document.getElementById("f-beta").value=c.beta||"";
   }
   document.getElementById("modal-bg").classList.add("show");
   document.getElementById("f-tk").focus();
@@ -721,30 +847,30 @@ function buildFinFrom(co,cagr,margin,revLast){
   const ys=[2019,2020,2021,2022,2023];
   const rev=ys.map((y,i)=>+(revLast/Math.pow(1+cagr,4-i)).toFixed(1));
   const ni=rev.map(r=>+(r*margin/100).toFixed(2));
-  const fin={years:ys,rev,
+  const fin={currency:"IDR",years:ys,rev,
     gp:rev.map(r=>+(r*0.42).toFixed(1)),
     ebitda:rev.map(r=>+(r*0.26).toFixed(1)),
-    op:rev.map(r=>+(r*0.18).toFixed(1)),
-    ni,
+    da:null,fincost:null,pbt:null,bargain:null,
+    ni,niOwners:null,nci:null,eps:null,
     assets:rev.map((r,i)=>+(r*1.9+5).toFixed(1)),
     liab:rev.map((r,i)=>+(r*(1.1+0.03*i)).toFixed(1)),
+    eqOwners:null,eqNci:null,
     cash:rev.map(r=>+(r*0.17).toFixed(1)),
     debt:rev.map(r=>+(r*0.42).toFixed(1)),
     ocf:rev.map(r=>+(r*0.22).toFixed(1)),
-    capex:rev.map(r=>+(r*0.07).toFixed(1)),
-    divpaid:ni.map(n=>+(n*0.3).toFixed(1))};
+    capex:rev.map(r=>+(-r*0.07).toFixed(1)),
+    fcf:null,
+    divpaid:ni.map(n=>+(-n*0.3).toFixed(1)),
+    note:null};
+  fin.eps=ni.map(n=>+(n*1e12/(co.shares*1e9)).toFixed(0));
   co.fin=fin;
-  co.fc={years:[2024,2025,2026],
-    rev:ys.map(()=>0)||[],
-    ni:[0,0,0],eps:[0,0,0],
+  co.fc={currency:"IDR",years:[2024,2025,2026,2027],
+    rev:[],ebitda:null,fcff:null,ni:[],eps:[],
     target:{low:+(co.price*0.85).toFixed(0),avg:+(co.price*1.2).toFixed(0),high:+(co.price*1.5).toFixed(0)},
-    ratings:{buy:2,hold:2,sell:1}};
-  let r=revLast*1e12,fcRev=[],fcNi=[];
-  const g2=cagr*0.6;
-  for(let i=0;i<3;i++){r*=(1+g2);fcRev.push(+(r/1e12).toFixed(1));fcNi.push(+(r*margin/100/100*100).toFixed(2))}
-  co.fc.rev=fcRev;
-  co.fc.ni=fcNi.map(n=>+n.toFixed(2));
-  co.fc.eps=fcNi.map(n=>+(n*1e12/(co.shares*1e9)).toFixed(0));
+    ratings:{buy:2,hold:2,sell:1},note:null};
+  let r=revLast,g2=cagr*0.6;
+  for(let i=0;i<4;i++){r*=(1+g2);co.fc.rev.push(+r.toFixed(1));co.fc.ni.push(+(r*margin/100).toFixed(2))}
+  co.fc.eps=co.fc.ni.map(n=>+(n*1e12/(co.shares*1e9)).toFixed(0));
 }
 
 /* =========================================================
